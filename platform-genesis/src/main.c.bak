@@ -1,0 +1,25 @@
+/**
+ * Hello World Example
+ * Created With Genesis-Code extension for Visual Studio Code
+ * Use "Genesis Code: Compile" command to compile this program.
+ **/
+#include <genesis.h>
+
+void test();
+char testGetChar(char *);
+
+int main()
+{
+    test();
+
+    char * str = malloc(8);
+    strcpy(str, "test: *");
+    str[6] = testGetChar("xyz");
+    VDP_drawText(str, 1, 1);
+    while(1)
+    {
+        //For versions prior to SGDK 1.60 use VDP_waitVSync instead.
+        SYS_doVBlankProcess();
+    }
+    return (0);
+}

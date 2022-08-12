@@ -1,0 +1,25 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "options": {
+        "env": {
+            "EXTRA_FLAGS": "-Wa,--bitwise-or" // lets us use | as OR operations but can no longer use it for comments.
+        }
+    },
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "build",
+            "command": "${env:GDK}/bin/make -f ${env:GDK}/makefile.gen",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        }
+    ]
+  }

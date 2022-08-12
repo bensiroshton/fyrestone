@@ -4,7 +4,6 @@
     .global VDPInit
     .global VDPClearCRAM
     .global VDPLoadPalette
-    .global VDPLoadPaletteReg
 
 // get a VDP command address with a given offset
 // since this is a macro it only works with fixed values, ie., you can't pass in a register for example.
@@ -39,26 +38,26 @@ VDPInit:
     rts
 
 //----------------------------------------------------------------------
-// VDPSetAddressCommand(commandAddress.l, offset.w)
+// VDPSetAddressCommand
+// d0 = commandAddress.l
+// d1 = offset.w
 //----------------------------------------------------------------------
 VDPSetAddressCommand:
     //move.l #((\offset & 0x3FFF) << 16) | ((\offset & 0xC000) >> 14) | \command, (VDP_CTRL)
-    movm.l %d0-%d1, -(%sp)  // store registers
-    move.w 12(%sp), %d0     // offset
-                            // command at 14(%sp), used below.
-    move.l %d0, %d1
+    movm.l %d2, -(%sp)  // store registers
+    move.l %d1, %d2
 
-    and.l #0x3fff, %d0
-    lsl.l #8, %d0
-    lsl.l #8, %d0
-    and.l #0xC000, %d1
-    lsr.l #8, %d1
-    lsr.l #6, %d1
+    and.l #0x3fff, %d1
+    lsl.l #8, %d1
+    lsl.l #8, %d1
+    and.l #0xC000, %d2
+    lsr.l #8, %d2
+    lsr.l #6, %d2
+    or.l %d2, %d1
     or.l %d1, %d0
-    or.l 14(%sp), %d0       // command
     move.l %d0, (VDP_CTRL)
 
-    movm.l (%sp)+, %d0-%d1 // restore registers
+    movm.l (%sp)+, %d2 // restore registers
     rts
 
 //----------------------------------------------------------------------
@@ -74,20 +73,20 @@ VDPClearCRAM:
     dbf %d0, .VDPClearCRAMLoop  // Loop until d0 == -1
     rts
 
+
 //----------------------------------------------------------------------
-// VDPLoadPalette(paletteAddress.l, numberOfPalettes.w)
+// VDPLoadPalette
+// a0 = paletteAddress.l
+// d0 = numberOfPalettes.w
+// d1 = palette slot.w
 // Each palette holds 16 colors, 2 bytes per color (BGR), total 32 bytes.
 //----------------------------------------------------------------------
 VDPLoadPalette:
-    movm.l %d0/%a0,-(%sp)   // store registers
-    move.w 12(%sp), %d0     // number of palettes
-    move.l 14(%sp), %a0     // palette address
-
-    VDPSetFixedControlAddress CRAM_ADDR_CMD
-    move.l #CRAM_ADDR_CMD, -(%sp)
-    move.w #0, -(%sp)
+    movm.l %d0-%d1, -(%sp)
+    move.l #CRAM_ADDR_CMD, %d0
+    mulu.w #32, %d1
     jsr VDPSetAddressCommand
-    addq.l #6, %sp
+    movm.l (%SP)+, %d0-%d1
 
     subq.w #1, %d0
 .VDPLoadPaletteLoop:
@@ -100,6 +99,4 @@ VDPLoadPalette:
     move.l (%a0)+, (VDP_DATA)
     move.l (%a0)+, (VDP_DATA)
     dbf %d0, .VDPLoadPaletteLoop
-
-    movm.l (%sp)+, %d0/%a0 // restore registers
     rts

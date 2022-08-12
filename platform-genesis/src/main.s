@@ -14,9 +14,9 @@ func main
     jmp .mainLoop
 
 func test
-    move.l #TestPalette, -(%sp)
-    move.w #1, -(%sp)
+    move.l #TestPalette, %a0    // palette address
+    move.w #1, %d0              // number of palettes
+    move.w #0, %d1              // palette slot
     jsr VDPLoadPalette
-    addq.l #6, %sp // pop arguments off stack
-
+    
     rts

@@ -4,9 +4,16 @@
     .global VDPInit
     .global VDPClearCRAM
     .global VDPLoadPalette
+    .global VDPLoadTileMap
 
+//----------------------------------------------------------------------
 // get a VDP command address with a given offset
 // since this is a macro it only works with fixed values, ie., you can't pass in a register for example.
+// command:
+//  VDP_VRAM_ADDR_CMD
+//  VDP_CRAM_ADDR_CMD
+//  VDP_VSRAM_ADDR_CMD
+//----------------------------------------------------------------------
 .macro VDPSetFixedControlAddress command, offset=0x0
 move.l #((\offset & 0x3FFF) << 16) | ((\offset & 0xC000) >> 14) | \command, (VDP_CTRL)
 .endm
@@ -16,25 +23,24 @@ move.l #((\offset & 0x3FFF) << 16) | ((\offset & 0xC000) >> 14) | \command, (VDP
 // 
 //----------------------------------------------------------------------
 VDPInit:
-    tst.w   (VDP_CTRL)                      // put the VDP into a known state, by reading the ctrl port.
-    lea     (VDP_CTRL), %a0   
-    move.w  #VDP_REG_MODE1|0x04, (%a0)      // Mode register #1
-    move.w  #VDP_REG_MODE2|0x04, (%a0)      // Mode register #2
-    move.w  #VDP_REG_MODE3|0x00, (%a0)      // Mode register #3
-    move.w  #VDP_REG_MODE4|0x81, (%a0)      // Mode register #4
+    tst.w   (VDP_CTRL)                              // put the VDP into a known state, by reading the ctrl port.
+    move.w  #VDP_REG_MODE1|0x04, (VDP_CTRL)         // Mode register #1
+    move.w  #VDP_REG_MODE2|0x40, (VDP_CTRL)         // Mode register #2; 0x40 = enable display, NTSC mode
+    move.w  #VDP_REG_MODE3|0x00, (VDP_CTRL)         // Mode register #3
+    move.w  #VDP_REG_MODE4|0x81, (VDP_CTRL)         // Mode register #4
     
-    move.w  #VDP_REG_PLANEA|0x30, (%a0)     // Plane A address
-    move.w  #VDP_REG_PLANEB|0x07, (%a0)     // Plane B address
-    move.w  #VDP_REG_SPRITE|0x78, (%a0)     // Sprite address
-    move.w  #VDP_REG_WINDOW|0x34, (%a0)     // Window address
-    move.w  #VDP_REG_HSCROLL|0x3D, (%a0)    // HScroll address
+    move.w  #VDP_REG_PLANEA|0x30, (VDP_CTRL)        // Plane A address
+    move.w  #VDP_REG_PLANEB|0x07, (VDP_CTRL)        // Plane B address
+    move.w  #VDP_REG_SPRITE|0x78, (VDP_CTRL)        // Sprite address
+    move.w  #VDP_REG_WINDOW|0x34, (VDP_CTRL)        // Window address
+    move.w  #VDP_REG_HSCROLL|0x3d, (VDP_CTRL)       // HScroll address
     
-    move.w  #VDP_REG_SIZE|0x01, (%a0)       // Tilemap size
-    move.w  #VDP_REG_WINX|0x00, (%a0)       // Window X split
-    move.w  #VDP_REG_WINY|0x00, (%a0)       // Window Y split
-    move.w  #VDP_REG_INCR|0x02, (%a0)       // Autoincrement
-    move.w  #VDP_REG_BGCOL|0x00, (%a0)      // Background color
-    move.w  #VDP_REG_HRATE|0xFF, (%a0)      // HBlank IRQ rate
+    move.w  #VDP_REG_PLANE_SIZE|0x01, (VDP_CTRL)    // Tilemap size;  0x01 = 512x256 pixels (64x32 cells), https://segaretro.org/Sega_Mega_Drive/Planes
+    move.w  #VDP_REG_WINX|0x00, (VDP_CTRL)          // Window X split
+    move.w  #VDP_REG_WINY|0x00, (VDP_CTRL)          // Window Y split
+    move.w  #VDP_REG_INCR|0x02, (VDP_CTRL)          // Autoincrement
+    move.w  #VDP_REG_BGCOL|0x00, (VDP_CTRL)         // Background color
+    move.w  #VDP_REG_HRATE|0xff, (VDP_CTRL)         // HBlank IRQ rate
     rts
 
 //----------------------------------------------------------------------
@@ -64,8 +70,8 @@ VDPSetAddressCommand:
 // VDPClearCRAM
 //----------------------------------------------------------------------
 VDPClearCRAM:
-    VDPSetFixedControlAddress CRAM_ADDR_CMD
-    move.w #CRAM_SIZE, %d0      // d0 = CRAM_SIZE
+    VDPSetFixedControlAddress VDP_CRAM_ADDR_CMD
+    move.w #VDP_CRAM_SIZE, %d0  // d0 = VDP_CRAM_SIZE
     lsr.w #2, %d0               // d0 /= 4
     subq.w #1, %d0              // d0 -= 1
 .VDPClearCRAMLoop:
@@ -80,16 +86,17 @@ VDPClearCRAM:
 // d0 = numberOfPalettes.w
 // d1 = palette slot.w
 // Each palette holds 16 colors, 2 bytes per color (BGR), total 32 bytes.
+// Colors are 9 bits, using 3 bits per color component.
 //----------------------------------------------------------------------
 VDPLoadPalette:
     movm.l %d0-%d1, -(%sp)
-    move.l #CRAM_ADDR_CMD, %d0
+    move.l #VDP_CRAM_ADDR_CMD, %d0
     mulu.w #32, %d1
     jsr VDPSetAddressCommand
     movm.l (%SP)+, %d0-%d1
 
     subq.w #1, %d0
-.VDPLoadPaletteLoop:
+.VDPLoadPaletteLoop: // unrolled for each palette
     move.l (%a0)+, (VDP_DATA)
     move.l (%a0)+, (VDP_DATA)
     move.l (%a0)+, (VDP_DATA)
@@ -100,3 +107,17 @@ VDPLoadPalette:
     move.l (%a0)+, (VDP_DATA)
     dbf %d0, .VDPLoadPaletteLoop
     rts
+
+//----------------------------------------------------------------------
+// VDPLoadTileMap
+// a0 = map address
+// d0 = plane selection (VDP_PLANEA, VDP_PLANEB, VDP_WINDOW)
+// d1 = number of tiles
+//----------------------------------------------------------------------
+VDPLoadTileMap:
+    VDPSetFixedControlAddress VDP_VRAM_ADDR_CMD, VDP_PLANEA
+    subq.w #1, %d1
+.VDPLoadTileMapLoop:
+    move.w (%a0)+, (VDP_DATA)
+    dbf %d1, .VDPLoadTileMapLoop
+

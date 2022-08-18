@@ -15,10 +15,11 @@ TestMap:
 
 func main
     jsr VDPInit
-    jsr PaletteTest
-    jsr TileTest
+    //jsr PaletteTest
+    jsr TileMapTest
+    jsr TileDataTest
 .mainLoop:
-    add.l #1, %d0 // debug ticker
+    add.l #1, %d7 // debug ticker
     jmp .mainLoop
 
 PaletteTest:
@@ -28,9 +29,30 @@ PaletteTest:
     jsr VDPLoadPalette
     rts
 
-TileTest:
+TileMapTest:
     move.l #TestMap, %a0        // map address
-    move.l #VDP_REG_PLANEA, %d0 // plane selection
+    move.l #VDP_PLANEA, %d0     // plane selection
     move.w #4, %d1              // number of tiles
     jsr VDPLoadTileMap
+    rts
+
+TileDataTest:
+    // load palette
+    move.l #vault_symbol_indexed_palette, %a0
+    move.w #1, %d0              // number of palettes
+    move.w #0, %d1              // palette slot
+    jsr VDPLoadPalette
+
+    // load tiles
+    move.l #vault_symbol_indexed_data, %a0
+    move.w vault_symbol_indexed_tile_count, %d0
+    jsr VDPLoadTileData
+
+    // set tile indexes
+    move.w #1, %d0
+    move.l #VDP_PLANEB, %d1
+    move.w vault_symbol_indexed_width_tiles, %d2
+    move.w vault_symbol_indexed_height_tiles, %d3
+    jsr VDPSetTileMapFillBlockLinear
+
     rts

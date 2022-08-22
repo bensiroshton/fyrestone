@@ -46,26 +46,42 @@ VDPInit:
     rts
 
 //----------------------------------------------------------------------
-// VDPSetAddressCommand
-// d0 = commandAddress.l
-// d1 = offset.l
+// VDPSetVRAMAddressCommand
+// d0.w = offset (in vram)
 //----------------------------------------------------------------------
-VDPSetAddressCommand:
-    //move.l #((\offset & 0x3FFF) << 16) | ((\offset & 0xC000) >> 14) | \command, (VDP_CTRL)
-    movm.l %d2, -(%sp)  // store registers
-    move.l %d1, %d2
+VDPSetVRAMAddressCommand:
+    and.l   #0xffff, %d0
+    lsl.l   #2, %d0
+    lsr.w   #2, %d0
+    swap    %d0
+    or.l    #VDP_VRAM_ADDR_CMD, %d0
+    move.l   %d0, (VDP_CTRL)
+    rts
 
-    and.l #0x3fff, %d1
-    lsl.l #8, %d1
-    lsl.l #8, %d1
-    and.l #0xC000, %d2
-    lsr.l #8, %d2
-    lsr.l #6, %d2
-    or.l %d2, %d1
-    or.l %d1, %d0
-    move.l %d0, (VDP_CTRL)
+//----------------------------------------------------------------------
+// VDPSetCRAMAddressCommand
+// d0.w = offset (in cram)
+//----------------------------------------------------------------------
+VDPSetCRAMAddressCommand:
+    and.l   #0xffff, %d0
+    lsl.l   #2, %d0
+    lsr.w   #2, %d0
+    swap    %d0
+    or.l    #VDP_CRAM_ADDR_CMD,  %d0
+    move.l   %d0, (VDP_CTRL)
+    rts
 
-    movm.l (%sp)+, %d2 // restore registers
+//----------------------------------------------------------------------
+// VDPSetVSRAMAddressCommand
+// d0.w = offset (in vsram)
+//----------------------------------------------------------------------
+VDPSetVSRAMAddressCommand:
+    and.l   #0xffff, %d0
+    lsl.l   #2, %d0
+    lsr.w   #2, %d0
+    swap    %d0
+    or.l    #VDP_VSRAM_ADDR_CMD,  %d0
+    move.l   %d0, (VDP_CTRL)
     rts
 
 //----------------------------------------------------------------------
@@ -73,7 +89,7 @@ VDPSetAddressCommand:
 //----------------------------------------------------------------------
 VDPClearCRAM:
     VDPSetFixedControlAddress VDP_CRAM_ADDR_CMD
-    move.w #VDP_CRAM_SIZE, %d0  // d0 = VDP_CRAM_SIZE
+    move.l #VDP_CRAM_SIZE, %d0  // d0 = VDP_CRAM_SIZE
     lsr.w #2, %d0               // d0 /= 4
     subq.w #1, %d0              // d0 -= 1
 .VDPClearCRAM_Loop:
@@ -85,19 +101,17 @@ VDPClearCRAM:
 //----------------------------------------------------------------------
 // VDPLoadPalette
 // a0 = paletteAddress.l
-// d0 = numberOfPalettes.w
-// d1 = palette slot.w
+// d0 = palette slot.w
+// d1 = numberOfPalettes.w
 // Each palette holds 16 colors, 2 bytes per color (BGR), total 32 bytes.
 // Colors are 12 bits, using 4 bits per color component.
 //----------------------------------------------------------------------
 VDPLoadPalette:
-    movm.l %d0-%d1, -(%sp)
-    move.l #VDP_CRAM_ADDR_CMD, %d0
-    mulu.w #32, %d1
-    jsr VDPSetAddressCommand
-    movm.l (%sp)+, %d0-%d1
+    mulu.w #32, %d0
+    jsr VDPSetCRAMAddressCommand
 
-    subq.w #1, %d0
+    and.l   #0xffff, %d1
+    subq.w #1, %d1
 .VDPLoadPalette_Loop: // unrolled for each palette
     move.l (%a0)+, (VDP_DATA)
     move.l (%a0)+, (VDP_DATA)
@@ -107,7 +121,7 @@ VDPLoadPalette:
     move.l (%a0)+, (VDP_DATA)
     move.l (%a0)+, (VDP_DATA)
     move.l (%a0)+, (VDP_DATA)
-    dbf %d0, .VDPLoadPalette_Loop
+    dbf %d1, .VDPLoadPalette_Loop
     rts
 
 //----------------------------------------------------------------------
@@ -116,9 +130,10 @@ VDPLoadPalette:
 // d0 = plane selection (VDP_PLANEA, VDP_PLANEB, VDP_WINDOW)
 // d1 = number of tiles
 //----------------------------------------------------------------------
-VDPLoadTileMap:
-    // TODO: support %d0 instead of hard coding VDP_PLANEA
-    VDPSetFixedControlAddress VDP_VRAM_ADDR_CMD, VDP_PLANEA
+VDPLoadTileMap:    
+    jsr VDPSetVRAMAddressCommand
+
+    and.l   #0xffff, %d1
     subq.w #1, %d1
 .VDPLoadTileMap_Loop:
     move.w (%a0)+, (VDP_DATA)
@@ -127,19 +142,16 @@ VDPLoadTileMap:
 
 //----------------------------------------------------------------------
 // VDPLoadTileData
-// a0 = data address
-// d0 = number of tiles
+// a0.l = data address (source)
+// d0.w = offset (in vram)
+// d1.w = number of tiles
 // each tile is 8 x 8, each row is 4 bytes.
 //----------------------------------------------------------------------
 VDPLoadTileData:
-    //movm.l %d0-%d1, -(%sp)
-    //move.l #VDP_VRAM_ADDR_CMD, %d0
-    //mulu.w #32, %d1
-    //jsr VDPSetAddressCommand
-    //movm.l (%sp)+, %d0-%d1
-    VDPSetFixedControlAddress VDP_VRAM_ADDR_CMD, 0x20 // offset by 32 bytes for testing (leave background tile 0 empty)
+    and.l   #0xffff, %d1
+    jsr VDPSetVRAMAddressCommand
 
-    subq.w #1, %d0
+    subq.w #1, %d1
 .VDPLoadTileData_Loop: // unrolled for each tile
     move.l (%a0)+, (VDP_DATA)
     move.l (%a0)+, (VDP_DATA)
@@ -149,37 +161,37 @@ VDPLoadTileData:
     move.l (%a0)+, (VDP_DATA)
     move.l (%a0)+, (VDP_DATA)
     move.l (%a0)+, (VDP_DATA)
-    dbf %d0, .VDPLoadTileData_Loop
+    dbf %d1, .VDPLoadTileData_Loop
     rts
 
 //----------------------------------------------------------------------
 // VDPSetTileMapFillBlockLinear
 // fill the tile map starting at X to (X + size)
-// d0 = tile index start 
-// d1 = map offset
-// d2 = width (in tiles)
-// d3 = height (in tiles)
+// d0.w = map offset (in vram)
+// d1.w = tile index start 
+// d2.w = width (in tiles)
+// d3.w = height (in tiles)
 //----------------------------------------------------------------------
 VDPSetTileMapFillBlockLinear:
     movm.l %d4, -(%sp)  // save d4
 
+    and.l   #0xffff, %d2
+    and.l   #0xffff, %d3
     // loop height in %d3
     subq.w #1, %d3
 .VDPSetTileMapFillBlockLinear_LoopHeight:
-    // set vram offset
-    movm.l %d0-%d1, -(%sp)
-    move.l #VDP_VRAM_ADDR_CMD, %d0
-    jsr VDPSetAddressCommand
-    movm.l (%sp)+, %d0-%d1
+    movm.l %d0, -(%sp)
+    jsr VDPSetVRAMAddressCommand
+    movm.l (%sp)+, %d0
 
     // loop width in %d4
     move.w %d2, %d4 // use width as a temp var in d4
     subq.w #1, %d4
 .VDPSetTileMapFillBlockLinear_LoopWidth:
-    move.w %d0, (VDP_DATA)
-    add.w #1, %d0
+    move.w %d1, (VDP_DATA)
+    add.w #1, %d1
     dbf %d4, .VDPSetTileMapFillBlockLinear_LoopWidth
-    add.l #128, %d1  // go to next destination row, add map width x 2 (bytes), TODO: use VDP_REG_PLANE_SIZE.
+    add.l #128, %d0  // go to next destination row, add map width x 2 (bytes), TODO: use VDP_REG_PLANE_SIZE.
     dbf %d3, .VDPSetTileMapFillBlockLinear_LoopHeight
 
     movm.l (%sp)+, %d4 // restore d4

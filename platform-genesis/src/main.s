@@ -16,7 +16,7 @@ TestMap:
 func main
     jsr VDPInit
     //jsr PaletteTest
-    jsr TileMapTest
+    //jsr TileMapTest
     jsr TileDataTest
 .mainLoop:
     add.l #1, %d7 // debug ticker
@@ -24,14 +24,14 @@ func main
 
 PaletteTest:
     move.l #TestPalette, %a0    // palette address
-    move.w #1, %d0              // number of palettes
-    move.w #0, %d1              // palette slot
+    move.w #0, %d0              // palette slot
+    move.w #1, %d1              // number of palettes
     jsr VDPLoadPalette
     rts
 
 TileMapTest:
     move.l #TestMap, %a0        // map address
-    move.l #VDP_PLANEA, %d0     // plane selection
+    move.w #VDP_PLANEA, %d0     // plane selection
     move.w #4, %d1              // number of tiles
     jsr VDPLoadTileMap
     rts
@@ -39,20 +39,20 @@ TileMapTest:
 TileDataTest:
     // load palette
     move.l #claptrap_diffused_indexed_palette, %a0
-    move.w #1, %d0              // number of palettes
-    move.w #0, %d1              // palette slot
+    move.w #0, %d0              // palette slot
+    move.w #1, %d1              // number of palettes
     jsr VDPLoadPalette
 
     // load tiles
     move.l #claptrap_diffused_indexed_data, %a0
-    move.w claptrap_diffused_indexed_tile_count, %d0
+    move.w #32, %d0 // vram offset to store tiles (32 = skip first tile)
+    move.w claptrap_diffused_indexed_tile_count, %d1
     jsr VDPLoadTileData
 
     // set tile indexes
-    move.w #1, %d0
-    move.l #VDP_PLANEB, %d1
+    move.l #VDP_PLANEB, %d0     // offset in vram
+    move.w #1, %d1              // start tile index
     move.w claptrap_diffused_indexed_width_tiles, %d2
     move.w claptrap_diffused_indexed_height_tiles, %d3
     jsr VDPSetTileMapFillBlockLinear
-
     rts

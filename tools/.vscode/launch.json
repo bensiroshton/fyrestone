@@ -20,7 +20,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "-i", "../data/temp/vault-symbol-indexed.png",
+                "-i", "../data/temp/*-indexed.png",
                 "-o", "../platform-genesis/src/data",
                 "-w"
             ]

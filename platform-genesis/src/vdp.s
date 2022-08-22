@@ -27,7 +27,7 @@ move.l #((\offset & 0x3FFF) << 16) | ((\offset & 0xC000) >> 14) | \command, (VDP
 VDPInit:
     tst.w   (VDP_CTRL)                              // put the VDP into a known state, by reading the ctrl port.
     move.w  #VDP_REG_MODE1|0x04, (VDP_CTRL)         // Mode register #1
-    move.w  #VDP_REG_MODE2|0x40, (VDP_CTRL)         // Mode register #2; 0x40 = enable display, NTSC mode
+    move.w  #VDP_REG_MODE2|0x44, (VDP_CTRL)         // Mode register #2; 0x44 = enable display, NTSC mode
     move.w  #VDP_REG_MODE3|0x00, (VDP_CTRL)         // Mode register #3
     move.w  #VDP_REG_MODE4|0x81, (VDP_CTRL)         // Mode register #4
     

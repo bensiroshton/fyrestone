@@ -1,4 +1,4 @@
-// png2asm ../data/temp/vault-symbol-indexed.png
+// png2asm ../data/temp\vault-symbol-indexed.png
 .text
     .global vault_symbol_indexed_width_tiles
     .global vault_symbol_indexed_height_tiles

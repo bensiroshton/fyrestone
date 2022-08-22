@@ -38,21 +38,21 @@ TileMapTest:
 
 TileDataTest:
     // load palette
-    move.l #vault_symbol_indexed_palette, %a0
+    move.l #claptrap_diffused_indexed_palette, %a0
     move.w #1, %d0              // number of palettes
     move.w #0, %d1              // palette slot
     jsr VDPLoadPalette
 
     // load tiles
-    move.l #vault_symbol_indexed_data, %a0
-    move.w vault_symbol_indexed_tile_count, %d0
+    move.l #claptrap_diffused_indexed_data, %a0
+    move.w claptrap_diffused_indexed_tile_count, %d0
     jsr VDPLoadTileData
 
     // set tile indexes
     move.w #1, %d0
     move.l #VDP_PLANEB, %d1
-    move.w vault_symbol_indexed_width_tiles, %d2
-    move.w vault_symbol_indexed_height_tiles, %d3
+    move.w claptrap_diffused_indexed_width_tiles, %d2
+    move.w claptrap_diffused_indexed_height_tiles, %d3
     jsr VDPSetTileMapFillBlockLinear
 
     rts

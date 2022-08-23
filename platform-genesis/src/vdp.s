@@ -7,6 +7,7 @@
     .global VDPLoadTileMap
     .global VDPLoadTileData
     .global VDPSetTileMapFillBlockLinear
+    .global VDPDrawText
 
 //----------------------------------------------------------------------
 // get a VDP command address with a given offset
@@ -127,7 +128,7 @@ VDPLoadPalette:
 //----------------------------------------------------------------------
 // VDPLoadTileMap
 // a0 = map address
-// d0 = plane selection (VDP_PLANEA, VDP_PLANEB, VDP_WINDOW)
+// d0 = vram destination (VDP_PLANEA, VDP_PLANEB, VDP_WINDOW)
 // d1 = number of tiles
 //----------------------------------------------------------------------
 VDPLoadTileMap:    
@@ -195,4 +196,41 @@ VDPSetTileMapFillBlockLinear:
     dbf %d3, .VDPSetTileMapFillBlockLinear_LoopHeight
 
     movm.l (%sp)+, %d4 // restore d4
+    rts
+
+//----------------------------------------------------------------------
+// VDPDrawText
+// a0 = address to font
+// a1 = address to null terminated string
+// d0.w = vram destination (VDP_PLANEA, VDP_PLANEB, VDP_WINDOW)
+// d1.w = x
+// d2.w = y
+// d3.w = palette index
+//----------------------------------------------------------------------
+VDPDrawText:
+    // set vram offset where we are going to draw our text
+    mulu.w #128, %d2        // d2 = y * map width
+    add.w %d2, %d1          // d1 = x + y offset
+    add.w %d1, %d0          // d0 (plane offset) += xy offset
+    jsr VDPSetVRAMAddressCommand
+
+    move (%a0), %d2         // set d2 to our tile offset in vram
+    lsr.w #5, %d2           // divide by 32 (get tile index offset)
+
+    lsl.w #8, %d3           // shift palette index << 13
+    lsl.w #5, %d3           // .
+
+    move.b #0, %d1          // move 0 into d1 for string null check
+.VDPDrawText_Loop:
+    cmp.b (%a1), %d1        // test current character for a null
+    beq .VDPDrawText_Finish // quit if null
+
+    move.w #0, %d0          // clear d0
+    move.b (%a1)+, %d0      // copy character to d0, go to next char
+    sub.w 2(%a0), %d0       // subtract character start from d0 (this is our offset into the character tiles 0=first tile)
+    add.w %d2, %d0          // add tile offset
+    or.w %d3, %d0           // set palette
+    move.w %d0, (VDP_DATA)  // set map tile to our character index
+    jmp .VDPDrawText_Loop
+.VDPDrawText_Finish:
     rts

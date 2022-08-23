@@ -37,7 +37,7 @@
                 "-o", "../platform-genesis/src/data",
                 "-w",
                 "-bg", "0",
-                "-fg", "1"
+                "-fg", "13"
             ]
         }
     ]

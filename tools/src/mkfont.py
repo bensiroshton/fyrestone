@@ -143,9 +143,15 @@ def make_font(options):
 					ds += f"{hex(tileData[di])},"
 				ds += f"{hex(tileData[tileDataLen - 1])}"
 				fo.write(ds.ljust(90, " "))
-				char = chr(CHAR_START + ti)
-				if char == chr(92): char = "back slash"
-				fo.write(f" // {char}\n")
+
+				c = CHAR_START + ti
+				s = chr(c)
+				if c == 32: s = "space"
+				elif c == 92: s = "back slash"
+
+				si = str(ti).rjust(2, " ")
+				sc = str(c).rjust(3, " ")
+				fo.write(f" // [{si}] {sc}, {hex(c)}: {s}\n")
 			fo.write("\n")
 
 	return info

@@ -1,28 +1,7 @@
 // png2asm ../data/temp\vault-symbol-indexed.png
 .text
-    .global vault_symbol_indexed_width_tiles
-    .global vault_symbol_indexed_height_tiles
-    .global vault_symbol_indexed_tile_count
-    .global vault_symbol_indexed_size
     .global vault_symbol_indexed_data
     .global vault_symbol_indexed_palette
-    .global vault_symbol_indexed_palette_count
-    .global vault_symbol_indexed_palette_size
-
-vault_symbol_indexed_width_tiles:
-    dc.w    40
-
-vault_symbol_indexed_height_tiles:
-    dc.w    28
-
-vault_symbol_indexed_tile_count:
-    dc.w    1120
-
-vault_symbol_indexed_palette_count:
-    dc.w    16
-
-vault_symbol_indexed_palette_size:
-    dc.w    32
 
 vault_symbol_indexed_data:
     dc.l    0x44344434,0x34434343,0x44344344,0x43434434,0x44434343,0x34344344,0x43434343,0x34443434

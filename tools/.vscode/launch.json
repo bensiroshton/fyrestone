@@ -24,6 +24,21 @@
                 "-o", "../platform-genesis/src/data",
                 "-w"
             ]
+        },
+        {
+            "name": "Python: mkfont",
+            "type": "python",
+            "request": "launch",
+            "program": "src/mkfont.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-f", "WillowBody CYR",
+                "-o", "../platform-genesis/src/data",
+                "-w",
+                "-bg", "0",
+                "-fg", "1"
+            ]
         }
     ]
 }

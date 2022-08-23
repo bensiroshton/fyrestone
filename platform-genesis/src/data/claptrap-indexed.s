@@ -1,28 +1,7 @@
 // png2asm ../data/temp\claptrap-indexed.png
 .text
-    .global claptrap_indexed_width_tiles
-    .global claptrap_indexed_height_tiles
-    .global claptrap_indexed_tile_count
-    .global claptrap_indexed_size
     .global claptrap_indexed_data
     .global claptrap_indexed_palette
-    .global claptrap_indexed_palette_count
-    .global claptrap_indexed_palette_size
-
-claptrap_indexed_width_tiles:
-    dc.w    40
-
-claptrap_indexed_height_tiles:
-    dc.w    28
-
-claptrap_indexed_tile_count:
-    dc.w    1120
-
-claptrap_indexed_palette_count:
-    dc.w    16
-
-claptrap_indexed_palette_size:
-    dc.w    32
 
 claptrap_indexed_data:
     dc.l    0x11111111,0x11111111,0x21111111,0x22211111,0x22222111,0x22333211,0x34444421,0x45555543

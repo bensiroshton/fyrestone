@@ -60,8 +60,4 @@
 #define TILE_LOPRI          0x0000      // Low priority (default)
 #define TILE_HIPRI          0x8000      // High priority
 
-/*
-.equ VDP_CTRL, 0xC00004
-*/
-
 #endif

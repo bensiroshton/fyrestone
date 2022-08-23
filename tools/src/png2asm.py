@@ -34,9 +34,12 @@ def process_source(options, source):
 	baseName = path.splitext(baseName)[0]
 	
 	baseLabel = baseName.replace("-", "_")
+	baseLabel = baseLabel.lower()
 
 	outFile = path.join(options["outFolder"], f"{baseName}.s")
+	outHeaderFile = path.join(options["outFolder"], f"{baseName}.h")
 	info["outFile"] = outFile
+	info["outHeader"] = outHeaderFile
 
 	if not options["overwrite"] and path.exists(outFile):
 		println(f"skipping {outFile}, it already exists and ovewrite is set to False")
@@ -50,11 +53,15 @@ def process_source(options, source):
 	w = image[0]
 	h = image[1]
 	pngInfo = image[3]
+	if not "palette" in pngInfo:
+		println("ERROR: Image does not contain an indexed palette.")
+		return info
+
 	palLen = len(pngInfo["palette"])
 
 	println(f"source image: {source}")
 	println(f"size: {w} x {h}")	
-	println(f"palette length: {palLen}")	
+	println(f"palette length: {palLen}")
 
 	if palLen == 0 or palLen > 16:
 		println("ERROR: Input palette size must be between 1 and 16")
@@ -106,44 +113,48 @@ def process_source(options, source):
 		outPal.append(color)
 	palSize = palLen * 2	
 
+	with open(outHeaderFile, "w") as fo:
+		defLabel = baseLabel.upper()
+
+		fo.write(f"// png2asm {source}\n\n")
+		if options["includeData"]:
+			fo.write(f"#define {defLabel}_WIDTH_TILES   {wt}\n")
+			fo.write(f"#define {defLabel}_HEIGHT_TILES  {ht}\n")
+			fo.write(f"#define {defLabel}_SIZE          {outTilesSize}\n")
+			fo.write(f"#define {defLabel}_TILE_COUNT    {outTilesLen}\n")
+		if options["includePalette"]:
+			fo.write(f"#define {defLabel}_PALETTE_COUNT {palLen}\n")
+			fo.write(f"#define {defLabel}_PALETTE_SIZE  {palSize}\n")
+
 	with open(outFile, "w") as fo:
 		fo.write(f"// png2asm {source}\n")
 		fo.write(".text\n")
-		fo.write(f"    .global {baseLabel}_width_tiles\n")
-		fo.write(f"    .global {baseLabel}_height_tiles\n")
-		fo.write(f"    .global {baseLabel}_tile_count\n")
-		fo.write(f"    .global {baseLabel}_size\n")
-		fo.write(f"    .global {baseLabel}_data\n")
-		fo.write(f"    .global {baseLabel}_palette\n")
-		fo.write(f"    .global {baseLabel}_palette_count\n")
-		fo.write(f"    .global {baseLabel}_palette_size\n")
+		if options["includeData"]:
+			fo.write(f"    .global {baseLabel}_data\n")
+		if options["includePalette"]:
+			fo.write(f"    .global {baseLabel}_palette\n")
 		fo.write("\n")
-
-		# image info
-		fo.write(f"{baseLabel}_width_tiles:\n    dc.w    {wt}\n\n")
-		fo.write(f"{baseLabel}_height_tiles:\n    dc.w    {ht}\n\n")
-		fo.write(f"{baseLabel}_tile_count:\n    dc.w    {outTilesLen}\n\n")
-		fo.write(f"{baseLabel}_palette_count:\n    dc.w    {palLen}\n\n")
-		fo.write(f"{baseLabel}_palette_size:\n    dc.w    {palSize}\n\n")
 
 		# image data
-		fo.write(f"{baseLabel}_data:\n")
-		for ti in range(0, outTilesLen):
-			tileData = outTiles[ti]
-			tileDataLen = len(tileData)
-			fo.write("    dc.l    ")
-			for di in range(0, tileDataLen - 1):
-				fo.write(f"{hex(tileData[di])},")
-			fo.write(f"{hex(tileData[tileDataLen - 1])}\n")
-		fo.write("\n")
+		if options["includeData"]:
+			fo.write(f"{baseLabel}_data:\n")
+			for ti in range(0, outTilesLen):
+				tileData = outTiles[ti]
+				tileDataLen = len(tileData)
+				fo.write("    dc.l    ")
+				for di in range(0, tileDataLen - 1):
+					fo.write(f"{hex(tileData[di])},")
+				fo.write(f"{hex(tileData[tileDataLen - 1])}\n")
+			fo.write("\n")
 
 		# palette data
-		fo.write(f"{baseLabel}_palette:\n")
-		fo.write("    dc.w    ")
-		for i in range(0, palLen - 1):
-			fo.write(f"{hex(outPal[i])},")
-		fo.write(f"{hex(outPal[palLen - 1])}")
-		fo.write("\n")
+		if options["includePalette"]:
+			fo.write(f"{baseLabel}_palette:\n")
+			fo.write("    dc.w    ")
+			for i in range(0, palLen - 1):
+				fo.write(f"{hex(outPal[i])},")
+			fo.write(f"{hex(outPal[palLen - 1])}")
+			fo.write("\n")
 
 	return info
 
@@ -190,12 +201,12 @@ def process(options):
 
 def show_help():
 
-	println("print-composite -i [source image(s)]")
-	println("-i    : source image(s) to process, wildcards are ok. [REQUIRED]")
-	println("-o    : output folder [default current directory].")
-	println("-n    : name of output file, when used all source images will be included in this single file.")
-	println("        default: not set, when not set a file per image will be output.")
-	println("-w    : enable overwrite mode [default: False].")
+	println("png2asm -i [source image(s)]")
+	println("-i      : source image(s) to process, wildcards are ok. [REQUIRED]")
+	println("-o      : output folder [default current directory].")
+	println("-w      : enable overwrite mode [default: False].")
+	println("-nodata : don't write tile data [default: include].")
+	println("-nopal  : don't write palette data [default: include].")
 
 def main(argv):
 
@@ -206,6 +217,8 @@ def main(argv):
 	options["name"] = None
 	options["overwrite"] = False
 	options["sources"] = None
+	options["includeData"] = True
+	options["includePalette"] = True
 
 	argCount = len(argv)
 	if argCount==1: # need _some_ arguments
@@ -218,10 +231,7 @@ def main(argv):
 	next(xr)
 	for i in xr:
 		arg = argv[i]
-		if arg=="-n" and i<argCount - 1:
-			options["name"] = argv[i+1]
-			next(xr)
-		elif arg=="-o" and i<argCount - 1:
+		if arg=="-o" and i<argCount - 1:
 			options["outFolder"] = argv[i+1]
 			next(xr)
 		elif arg=="-i" and i<argCount - 1:
@@ -229,6 +239,10 @@ def main(argv):
 			next(xr)
 		elif arg=="-w":
 			options["overwrite"] = True
+		elif arg=="-nodata":
+			options["includeData"] = False
+		elif arg=="-nopal":
+			options["includePalette"] = False
 		elif arg=="-h":
 			show_help()
 			return
@@ -240,6 +254,10 @@ def main(argv):
 		if options["sources"] is None:
 			println("source image(s) must be supplied.")
 			return
+
+	if not options["includeData"] and not options["includePalette"]:
+		println("not including data or palette, nothing to do.")
+		return
 
 	options["outFolder"] = path.abspath(options["outFolder"])
 

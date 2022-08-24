@@ -27,6 +27,10 @@ TestString:
     .asciz  "Hello World! This is a test string..."
     .align  2
 
+TestString2:
+    .asciz  "0123456789"
+    .align  2
+
 func main
     jsr VDPInit
     //jsr PaletteTest
@@ -61,13 +65,37 @@ LoadFont:
 
 TestText:
     move.l #MainFont, %a0
-    move.l #TestString, %a1
+    move.l #TestString2, %a1
     move.w #VDP_PLANEA, %d0
-    // TODO: figure out why we can't write to xy = 1,1.. something to do with odd addresses??
-    move.w #2, %d1  // x
+    move.w #0, %d1  // x
     move.w #0, %d2  // y
     move.w #0, %d3  // palette
     jsr VDPDrawText
+    
+    move.l #MainFont, %a0
+    move.l #TestString, %a1
+    move.w #VDP_PLANEA, %d0
+    move.w #1, %d1  // x
+    move.w #1, %d2  // y
+    move.w #0, %d3  // palette
+    jsr VDPDrawText
+
+    move.l #MainFont, %a0
+    move.l #TestString, %a1
+    move.w #VDP_PLANEA, %d0
+    move.w #2, %d1  // x
+    move.w #2, %d2  // y
+    move.w #0, %d3  // palette
+    jsr VDPDrawText
+
+    move.l #MainFont, %a0
+    move.l #TestString, %a1
+    move.w #VDP_PLANEA, %d0
+    move.w #3, %d1  // x
+    move.w #3, %d2  // y
+    move.w #0, %d3  // palette
+    jsr VDPDrawText
+
     rts
 
 TileDataTest:

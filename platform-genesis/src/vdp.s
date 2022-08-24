@@ -209,9 +209,10 @@ VDPSetTileMapFillBlockLinear:
 //----------------------------------------------------------------------
 VDPDrawText:
     // set vram offset where we are going to draw our text
-    mulu.w #128, %d2        // d2 = y * map width
-    add.w %d2, %d1          // d1 = x + y offset
-    add.w %d1, %d0          // d0 (plane offset) += xy offset
+    mulu.w #128, %d2        // y offset = y * map width, TODO: determine if we want to hard code the map width here, depends on map resolution settings but probably wont change per app.
+    mulu.w #2, %d1          // x offset = x * 2 bytes
+    add.w %d2, %d1          // d1 = x offset + y offset
+    add.w %d1, %d0          // d0 (plane offset) += xy offsets
     jsr VDPSetVRAMAddressCommand
 
     move (%a0), %d2         // set d2 to our tile offset in vram

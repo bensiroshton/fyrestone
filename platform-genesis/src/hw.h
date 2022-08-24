@@ -47,6 +47,14 @@
 #define VDP_VSRAM_SIZE      80
 
 // Tile Attributes
+// 2 Bytes Per Tile
+// 15 14 13 12 11 10 09 08 07 06 05 04 03 02 01
+// PR P1 P0 VF HF T9 T8 T7 T6 T5 T4 T3 T2 T1 T0 
+//  T0 - T9 : Tile Number
+//       HF : Horizontal Flip
+//       VF : Vertical Flip
+//  P0 - P1 : Palette Number
+//       PR : Prioirty
 #define TILE_NOFLIP         0x0000      // Don't flip (default)
 #define TILE_HFLIP          0x0800      // Flip horizontally
 #define TILE_VFLIP          0x1000      // Flip vertically

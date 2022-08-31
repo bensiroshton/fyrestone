@@ -39,6 +39,19 @@
                 "-bg", "0",
                 "-fg", "13"
             ]
-        }
+        },
+        {
+            "name": "Python: tiled2asm",
+            "type": "python",
+            "request": "launch",
+            "program": "src/tiled2asm.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-i", "../data/arid-badlands/arid-badlands.tmj",
+                "-o", "../platform-genesis/src/data",
+                "-w",
+            ]
+        }        
     ]
 }

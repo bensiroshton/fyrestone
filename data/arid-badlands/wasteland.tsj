@@ -1,0 +1,129 @@
+{ "columns":40,
+ "fillmode":"preserve-aspect-fit",
+ "image":"wasteland-tiles.png",
+ "imageheight":112,
+ "imagewidth":320,
+ "margin":0,
+ "name":"wasteland",
+ "spacing":0,
+ "tilecount":560,
+ "tiledversion":"1.9.1",
+ "tileheight":8,
+ "tiles":[
+        {
+         "id":42,
+         "probability":0.2
+        }, 
+        {
+         "id":81,
+         "probability":0.05
+        }, 
+        {
+         "id":82,
+         "probability":0.2
+        }],
+ "tilewidth":8,
+ "transformations":
+    {
+     "hflip":true,
+     "preferuntransformed":false,
+     "rotate":false,
+     "vflip":true
+    },
+ "type":"tileset",
+ "version":"1.8",
+ "wangsets":[
+        {
+         "colors":[
+                {
+                 "color":"#ff0000",
+                 "name":"Sand with Rock",
+                 "probability":1,
+                 "tile":-1
+                }],
+         "name":"Wasteland",
+         "tile":-1,
+         "type":"corner",
+         "wangtiles":[
+                {
+                 "tileid":0,
+                 "wangid":[0, 0, 0, 1, 0, 0, 0, 0]
+                }, 
+                {
+                 "tileid":1,
+                 "wangid":[0, 0, 0, 1, 0, 1, 0, 0]
+                }, 
+                {
+                 "tileid":2,
+                 "wangid":[0, 0, 0, 1, 0, 1, 0, 0]
+                }, 
+                {
+                 "tileid":3,
+                 "wangid":[0, 0, 0, 0, 0, 1, 0, 0]
+                }, 
+                {
+                 "tileid":40,
+                 "wangid":[0, 1, 0, 1, 0, 0, 0, 0]
+                }, 
+                {
+                 "tileid":41,
+                 "wangid":[0, 1, 0, 1, 0, 1, 0, 1]
+                }, 
+                {
+                 "tileid":42,
+                 "wangid":[0, 1, 0, 1, 0, 1, 0, 1]
+                }, 
+                {
+                 "tileid":43,
+                 "wangid":[0, 0, 0, 0, 0, 1, 0, 1]
+                }, 
+                {
+                 "tileid":45,
+                 "wangid":[0, 1, 0, 0, 0, 1, 0, 1]
+                }, 
+                {
+                 "tileid":46,
+                 "wangid":[0, 1, 0, 1, 0, 0, 0, 1]
+                }, 
+                {
+                 "tileid":80,
+                 "wangid":[0, 1, 0, 1, 0, 0, 0, 0]
+                }, 
+                {
+                 "tileid":81,
+                 "wangid":[0, 1, 0, 1, 0, 1, 0, 1]
+                }, 
+                {
+                 "tileid":82,
+                 "wangid":[0, 1, 0, 1, 0, 1, 0, 1]
+                }, 
+                {
+                 "tileid":83,
+                 "wangid":[0, 0, 0, 0, 0, 1, 0, 1]
+                }, 
+                {
+                 "tileid":85,
+                 "wangid":[0, 0, 0, 1, 0, 1, 0, 1]
+                }, 
+                {
+                 "tileid":86,
+                 "wangid":[0, 1, 0, 1, 0, 1, 0, 0]
+                }, 
+                {
+                 "tileid":120,
+                 "wangid":[0, 1, 0, 0, 0, 0, 0, 0]
+                }, 
+                {
+                 "tileid":121,
+                 "wangid":[0, 1, 0, 0, 0, 0, 0, 1]
+                }, 
+                {
+                 "tileid":122,
+                 "wangid":[0, 1, 0, 0, 0, 0, 0, 1]
+                }, 
+                {
+                 "tileid":123,
+                 "wangid":[0, 0, 0, 0, 0, 0, 0, 1]
+                }]
+        }]
+}

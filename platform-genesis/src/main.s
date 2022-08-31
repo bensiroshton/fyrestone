@@ -2,7 +2,25 @@
 #include "func.i"
 #include "data/claptrap-diffused-indexed.h"
 #include "data/WillowBody_CYR.h"
+#include "data/arid_badlands_map.h"
 
+// MainFont
+MainFont:
+MainFontVRAM:
+    dc.w    0xb400
+MainFontCharStart:
+    dc.w    WILLOWBODY_CYR_CHAR_START
+
+// WorldMap
+WorldMap:
+WorldMapData:
+    dc.l    arid_badlands_planeb_data
+WorldMapWidth: // in tiles
+    dc.w    ARID_BADLANDS_PLANEB_MAP_WIDTH
+WorldMapHeight: // in tiles
+    dc.w    ARID_BADLANDS_PLANEB_MAP_HEIGHT
+
+// Some test data
 TestPalette:
     dc.w    0x0333,0x0115,0x0356,0x0139,0x0031,0x0033,0x0785,0x05cd,0x0a9d,0x0eee,0x0154,0x04ee,0x098a,0x0743,0x0f95,0x079a
 
@@ -15,14 +33,6 @@ TestMap:
     dc.w    0x05c3
     dc.w    0x05c4
 
-MainFont:
-MainFontVRAM:
-    dc.w    0xb400
-MainFontCharStart:
-    dc.w    WILLOWBODY_CYR_CHAR_START
-MainFontCharCount:
-    dc.w    WILLOWBODY_CYR_CHAR_COUNT
-
 TestString:
     .asciz  "Hello World! This is a test string..."
     .align  2
@@ -31,6 +41,7 @@ TestString2:
     .asciz  "0123456789"
     .align  2
 
+// Main
 func main
     jsr VDPInit
     //jsr PaletteTest
@@ -58,8 +69,8 @@ TileMapTest:
 
 LoadFont:
     move.l #willowbody_cyr_data, %a0
-    move.w MainFontVRAM, %d0        // vram offset to store tiles
-    move.w MainFontCharCount, %d1   // number of tiles
+    move.w MainFontVRAM, %d0                // vram offset to store tiles
+    move.w #WILLOWBODY_CYR_CHAR_COUNT, %d1  // number of tiles
     jsr VDPLoadTileData
     rts
 

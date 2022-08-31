@@ -167,7 +167,7 @@ VDPLoadTileData:
 
 //----------------------------------------------------------------------
 // VDPSetTileMapFillBlockLinear
-// fill the tile map starting at X to (X + size)
+// fill a square of the tile map starting at X to (X + size)
 // d0.w = map offset (in vram)
 // d1.w = tile index start 
 // d2.w = width (in tiles)
@@ -227,7 +227,7 @@ VDPDrawText:
     beq .VDPDrawText_Finish // quit if null
 
     move.w #0, %d0          // clear d0
-    move.b (%a1)+, %d0      // copy character to d0, go to next char
+    move.b (%a1)+, %d0      // copy character to d0, prepare next
     sub.w 2(%a0), %d0       // subtract character start from d0 (this is our offset into the character tiles 0=first tile)
     add.w %d2, %d0          // add tile offset
     or.w %d3, %d0           // set palette

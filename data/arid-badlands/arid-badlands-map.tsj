@@ -1,0 +1,14 @@
+{ "columns":1,
+ "image":"arid-badlands-map.jpg",
+ "imageheight":1035,
+ "imagewidth":2245,
+ "margin":0,
+ "name":"Arid_Badlands_Complete",
+ "spacing":0,
+ "tilecount":1,
+ "tiledversion":"1.9.1",
+ "tileheight":1035,
+ "tilewidth":2245,
+ "type":"tileset",
+ "version":"1.8"
+}

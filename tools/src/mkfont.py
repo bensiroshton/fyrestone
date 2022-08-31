@@ -1,4 +1,4 @@
-"""convert png into an assembly data file"""
+"""create font tiles and export as assembly."""
 import sys
 import os
 import json

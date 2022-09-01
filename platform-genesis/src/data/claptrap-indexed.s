@@ -1,8 +1,26 @@
-// png2asm ../data/temp\claptrap-indexed.png
+// png.to_asm ../data/temp\claptrap-indexed.png
+#include "claptrap-indexed.h"
+
 .text
+    // data
     .global claptrap_indexed_data
     .global claptrap_indexed_palette
+    // struct
+    .global ClaptrapIndexed
+    .global ClaptrapIndexedData
+    .global ClaptrapIndexedPalette
+    .global ClaptrapIndexedTileCount
 
+// struct
+ClaptrapIndexed:
+ClaptrapIndexedData:
+    dc.l    claptrap_indexed_data
+ClaptrapIndexedTileCount:
+    dc.w    CLAPTRAP_INDEXED_TILE_COUNT
+ClaptrapIndexedPalette:
+    dc.l    claptrap_indexed_palette
+
+// image data
 claptrap_indexed_data:
     dc.l    0x11111111,0x11111111,0x21111111,0x22211111,0x22222111,0x22333211,0x34444421,0x45555543
     dc.l    0x11223322,0x11223321,0x11223322,0x11223332,0x11223433,0x12223443,0x12223444,0x33223454
@@ -1125,5 +1143,6 @@ claptrap_indexed_data:
     dc.l    0x32222222,0x33332222,0x32223223,0x23222222,0x22222333,0x22322222,0x33222222,0x22222222
     dc.l    0x22222222,0x22222222,0x22222222,0x33232222,0x33332222,0x23343233,0x23332223,0x23333322
 
+// palette data
 claptrap_indexed_palette:
     dc.w    0xfff,0xbbc,0x99a,0x88a,0x778,0x667,0x555,0x234,0x222,0x0,0xba7,0x984,0x543,0x0,0x6bd,0x55b

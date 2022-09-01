@@ -1,4 +1,4 @@
-// png2asm ../data/temp\vault-symbol-indexed.png
+// png.to_asm ../data/temp\vault-symbol-indexed.png
 
 #define VAULT_SYMBOL_INDEXED_WIDTH_TILES   40
 #define VAULT_SYMBOL_INDEXED_HEIGHT_TILES  28

@@ -1,9 +1,26 @@
 // mkfont "WillowBody CYR"
+#include "WillowBody_CYR.h"
 
 .text
-    .global willowbody_cyr_data
+     // data
+    .global willowbody_cyr_font_data
+     // struct
+    .global WillowbodyCyrFont
+    .global WillowbodyCyrFontData
+    .global WillowbodyCyrFontTileCount
+    .global WillowbodyCyrFontCharStart
 
-willowbody_cyr_data:
+// struct
+WillowbodyCyrFont:
+WillowbodyCyrFontData:
+    dc.l    willowbody_cyr_font_data
+WillowbodyCyrFontTileCount:
+    dc.w    WILLOWBODY_CYR_FONT_CHAR_COUNT
+WillowbodyCyrFontCharStart:
+    dc.w    WILLOWBODY_CYR_FONT_CHAR_START
+
+// tile data
+willowbody_cyr_font_data:
     dc.l    0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0                                                            // [ 0]  32, 0x20: space
     dc.l    0x0,0x0,0xd000,0xd000,0xd000,0x0,0xd000,0x0                                                // [ 1]  33, 0x21: !
     dc.l    0x0,0x0,0xdd0000,0xdd0000,0x0,0x0,0x0,0x0                                                  // [ 2]  34, 0x22: "

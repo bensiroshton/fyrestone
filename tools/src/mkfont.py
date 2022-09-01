@@ -3,33 +3,16 @@ import sys
 import os
 import json
 import os.path as path
-import fnmatch
-import math
 import re
-import png
 from wand.image import Image
 from wand.drawing import Drawing
 from wand.color import Color
+import libgen
 
 CHAR_START = 32
 CHAR_END = 126
 
-_log = None
-
-def print(msg):
-	sys.stdout.write(msg)
-	sys.stdout.flush()
-	if _log is not None:
-		_log.write(msg)
-		_log.flush()
-
-def println(msg):
-	print(msg + "\n")
-
-def sorted_alphanumeric(data):
-	convert = lambda text: int(text) if text.isdigit() else text.lower()
-	alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
-	return sorted(data, key=alphanum_key)
+log = libgen.Log("tiled2asm.log")
 
 def set_font_size(image, drawing):
 	drawing.font_size = 8
@@ -53,14 +36,15 @@ def make_font(options):
 	baseLabel = baseName.lower()
 
 	outSrcFile = path.join(options["outFolder"], f"{baseName}.s")
-	outHeaderFile = path.join(options["outFolder"], f"{baseName}.h")
+	outHeaderFileName = f"{baseName}.h"
+	outHeaderFile = path.join(options["outFolder"], outHeaderFileName)
 	outImageFile = path.join(options["outFolder"], f"{baseName}.png")
 	info["outFile"] = outSrcFile
 	info["outHeader"] = outHeaderFile
 	info["outImageFile"] = outImageFile
 
 	if not options["overwrite"] and path.exists(outImageFile):
-		println(f"skipping {outImageFile}, it already exists and ovewrite is set to False")
+		log.println(f"skipping {outImageFile}, it already exists and ovewrite is set to False")
 		info["skipped"] = True
 		return info
 
@@ -83,7 +67,7 @@ def make_font(options):
 			drw.text_antialias = False
 			set_font_size(image, drw)
 			info["font"]["size"] = drw.font_size
-			println(f"font size: {drw.font_size}")
+			log.println(f"font size: {drw.font_size}")
 			x = 4
 			y = 7
 			for char in range(CHAR_START, CHAR_END + 1):
@@ -92,7 +76,7 @@ def make_font(options):
 			drw.draw(image)
 		image.save(filename=outImageFile) # just for debugging
 	
-		# write data file
+		# create tile data
 		bgIndex = options["bgIndex"]
 		fgIndex = options["fgIndex"]
 		outTiles = []
@@ -115,9 +99,13 @@ def make_font(options):
 		
 		outTilesLen = len(outTiles)	
 
+		defLabel = baseLabel.upper() + "_FONT"
+		structLabel = libgen.util.to_upper_camel(baseLabel) + "Font"
+		dataLabel = f"{baseLabel}_font_data"
+
+		# write header
 		with open(outHeaderFile, "w") as fo:
-			
-			defLabel = baseLabel.upper()
+						
 			fo.write(f"// mkfont \"{fontName}\"\n\n")
 			fo.write(f"#define {defLabel}_CHAR_START {CHAR_START}\n")
 			fo.write(f"#define {defLabel}_CHAR_END   {CHAR_END}\n")
@@ -126,14 +114,35 @@ def make_font(options):
 			fo.write(f"#define {defLabel}_FG_INDEX   {hex(fgIndex)}\n")
 			fo.write(f"#define {defLabel}_SIZE       {outTilesSize}\n")
 
+		# write source
 		with open(outSrcFile, "w") as fo:
 
-			fo.write(f"// mkfont \"{fontName}\"\n\n")
-			fo.write(".text\n")
-			fo.write(f"    .global {baseLabel}_data\n")
+			fo.write(f"// mkfont \"{fontName}\"\n")
+			fo.write(f"#include \"{outHeaderFileName}\"\n")
 			fo.write("\n")
 
-			fo.write(f"{baseLabel}_data:\n")
+			fo.write(".text\n")
+			fo.write("     // data\n")
+			fo.write(f"    .global {dataLabel}\n")
+			fo.write("     // struct\n")
+			fo.write(f"    .global {structLabel}\n")
+			fo.write(f"    .global {structLabel}Data\n")
+			fo.write(f"    .global {structLabel}TileCount\n")
+			fo.write(f"    .global {structLabel}CharStart\n")
+			fo.write("\n")
+
+			fo.write("// struct\n")
+			fo.write(f"{structLabel}:\n")
+			fo.write(f"{structLabel}Data:\n")
+			fo.write(f"    dc.l    {dataLabel}\n")
+			fo.write(f"{structLabel}TileCount:\n")
+			fo.write(f"    dc.w    {defLabel}_CHAR_COUNT\n")
+			fo.write(f"{structLabel}CharStart:\n")
+			fo.write(f"    dc.w    {defLabel}_CHAR_START\n")
+			fo.write("\n")	
+
+			fo.write("// tile data\n")
+			fo.write(f"{dataLabel}:\n")
 			for ti in range(0, outTilesLen):
 				tileData = outTiles[ti]
 				tileDataLen = len(tileData)
@@ -158,12 +167,12 @@ def make_font(options):
 
 def show_help():
 
-	println("mkfont -i [source font(s)]")
-	println("-f    : font name. [REQUIRED]")
-	println("-o    : output folder [default current directory].")
-	println("-w    : enable overwrite mode [default: False].")
-	println("-bg   : background index (0-15) [default: 0].")
-	println("-fg   : foreground index (0-15) [default: 1].")
+	log.println("mkfont -i [source font(s)]")
+	log.println("-f    : font name. [REQUIRED]")
+	log.println("-o    : output folder [default current directory].")
+	log.println("-w    : enable overwrite mode [default: False].")
+	log.println("-bg   : background index (0-15) [default: 0].")
+	log.println("-fg   : foreground index (0-15) [default: 1].")
 
 def main(argv):
 
@@ -205,30 +214,29 @@ def main(argv):
 			show_help()
 			return
 		else:
-			println("unrecognized command (or missing command arguments): " + arg)
+			log.println("unrecognized command (or missing command arguments): " + arg)
 			return
 
 	if options["font"] is None:
-		println("font name must be supplied.")
+		log.println("font name must be supplied.")
 		return
 
 	if options["bgIndex"] == options["fgIndex"]:
-		println("background and foreground indexes must be different.")
+		log.println("background and foreground indexes must be different.")
 		return
 
 	if options["bgIndex"] < 0 or options["bgIndex"] > 15:
-		println("background index must be between 0 and 15.")
+		log.println("background index must be between 0 and 15.")
 		return
 
 	if options["fgIndex"] < 0 or options["fgIndex"] > 15:
-		println("foreground index must be between 0 and 15.")
+		log.println("foreground index must be between 0 and 15.")
 		return
 
 	options["outFolder"] = path.abspath(options["outFolder"])
 
-	_log = open("mkfont.log", "w")
-	json.dump(options, _log, indent=4)
-	println("")
+	json.dump(options, log.file(), indent=4)
+	log.println("")
 
 	os.makedirs(options["outFolder"], exist_ok=True)
 	info = make_font(options)
@@ -238,18 +246,15 @@ def main(argv):
 		with open("mkfont.json", "w") as f:
 			json.dump(info, f, indent=4)
 
-	println("finished.")
+	log.println("finished.")
 
 if __name__ == '__main__':
 
 	try:
 		main(sys.argv)
 	except KeyboardInterrupt:
-		println("\nuser break!")
+		log.println("\nuser break!")
 	except SystemExit:
-		println("exiting program.")
+		log.println("exiting program.")
 	#except:		
-	#	println(f"Unexpected error: {sys.exc_info()[0]}")
-
-	if  _log is not None:
-		_log.close()
+	#	log.println(f"Unexpected error: {sys.exc_info()[0]}")

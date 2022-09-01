@@ -1,5 +1,5 @@
-#if !defined(_HW_H_)
-#define _HW_H_
+#if !defined(_hw_h_)
+#define _hw_h_
 
 // Control
 #define VDP_CTRL            0xc00004   // VDP control port

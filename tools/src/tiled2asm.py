@@ -54,7 +54,8 @@ def process_source(sourceFile, options):
 	baseLabel = baseName.lower()
 
 	outSrcFile = path.join(options["outFolder"], f"{baseName}.s")
-	outHeaderFile = path.join(options["outFolder"], f"{baseName}.h")
+	outHeaderFileName = f"{baseName}.h"
+	outHeaderFile = path.join(options["outFolder"], outHeaderFileName)
 	info["outFile"] = outSrcFile
 	info["outHeader"] = outHeaderFile
 
@@ -146,17 +147,22 @@ def process_source(sourceFile, options):
 					outLayer["outTilesSize"] += 2 # 2 bytes per tyle
 					chunkIdx += 1
 
+	if len(layers) == 0:
+		log.print("Nothing to export, did you add the custom 'export' property to your layer(s)?")
+		return info
+
 	# Write header file
 	with open(outHeaderFile, "w") as fo:
 
+		# file header
 		fo.write(f"// tiled2asm \"{sourceFile}\"\n\n")
 
+		# map details
 		for layer in layers:
-			layerName = layer["name"]
+			layerName = libgen.util.make_variable_friendly(layer["name"])
 			outTileSize = layer["outTilesSize"]
 			mapWidth = layer["width"]
 			mapHeight = layer["height"]
-			tiles = layer["tiles"]
 			tileCount = mapWidth * mapHeight
 			defLabel = f"{baseLabel.upper()}_{layerName.upper()}"
 			fo.write(f"// Layer: {layerName}\n\n")
@@ -169,25 +175,57 @@ def process_source(sourceFile, options):
 	# write source file
 	with open(outSrcFile, "w") as fo:
 
-		fo.write(f"// tiled2asm \"{sourceFile}\"\n\n")
+		# file header		
+		fo.write(f"// tiled2asm \"{sourceFile}\"\n")
+		fo.write(f"#include \"{outHeaderFileName}\"\n")
+		fo.write("\n")
 
+		# globals
 		fo.write(".text\n")
 		for layer in layers:
-			label = f"{baseLabel}_{layerName.lower()}_data"
+			layerName = libgen.util.make_variable_friendly(layer["name"])
+			fo.write(f"    // data\n")
+			label = f"{baseLabel}_{layerName.lower()}"
+			fo.write(f"    .global {label}_data\n")
+			fo.write(f"    // struct\n")
+			label = libgen.util.to_upper_camel(label)
 			fo.write(f"    .global {label}\n")
+			fo.write(f"    .global {label}Data\n")
+			fo.write(f"    .global {label}Width\n")
+			fo.write(f"    .global {label}Height\n")
 
 		fo.write("\n")
 
+		# map struct
 		for layer in layers:
-			layerName = layer["name"]
-			outTileSize = layer["outTilesSize"]
+			layerName = libgen.util.make_variable_friendly(layer["name"])
+			label = f"{baseLabel}_{layerName.lower()}"
+			dataLabel = f"{label}_data"
+			defLabel = f"{baseLabel.upper()}_{layerName.upper()}"
+			label = libgen.util.to_upper_camel(label)
+
+			fo.write(f"// map struct\n")
+			fo.write(f"{label}:\n")
+			fo.write(f"{label}Data:\n")
+			fo.write(f"    dc.l    {dataLabel}\n")
+			fo.write(f"{label}Width:\n")
+			fo.write(f"    dc.w    {defLabel}_MAP_WIDTH\n")
+			fo.write(f"{label}Height:\n")
+			fo.write(f"    dc.w    {defLabel}_MAP_HEIGHT\n")
+			fo.write("\n")
+
+		# tile data
+		for layer in layers:
+			layerName = libgen.util.make_variable_friendly(layer["name"])
 			mapWidth = layer["width"]
 			mapHeight = layer["height"]
 			tiles = layer["tiles"]
-			tileCount = mapWidth * mapHeight
-			label = f"{baseLabel}_{layerName.lower()}_data"
-			fo.write(f"// Layer: {layerName}\n\n")
-			fo.write(f"{label}:\n")
+			label = f"{baseLabel}_{layerName.lower()}"
+			dataLabel = f"{label}_data"
+
+			# map data
+			fo.write(f"// map data (indexed tiles)\n")
+			fo.write(f"{dataLabel}:\n")
 			for y in range(0, mapHeight):
 				fo.write("    dc.l    ")
 				for x in range(0, mapWidth - 1):

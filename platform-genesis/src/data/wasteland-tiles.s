@@ -1,8 +1,26 @@
 // png.to_asm ../data/arid-badlands\wasteland-tiles.png
+#include "wasteland-tiles.h"
+
 .text
+    // data
     .global wasteland_tiles_data
     .global wasteland_tiles_palette
+    // struct
+    .global WastelandTiles
+    .global WastelandTilesData
+    .global WastelandTilesPalette
+    .global WastelandTilesTileCount
 
+// struct
+WastelandTiles:
+WastelandTilesData:
+    dc.l    wasteland_tiles_data
+WastelandTilesTileCount:
+    dc.w    WASTELAND_TILES_TILE_COUNT
+WastelandTilesPalette:
+    dc.l    wasteland_tiles_palette
+
+// image data
 wasteland_tiles_data:
     dc.l    0x11111111,0x11111111,0x11111111,0x11110000,0x11105050,0x11105555,0x11110555,0x11100555
     dc.l    0x11111111,0x11111111,0x11111111,0x11000011,0x55000,0x50555555,0x55555555,0x55555555
@@ -565,5 +583,6 @@ wasteland_tiles_data:
     dc.l    0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
     dc.l    0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
 
+// palette data
 wasteland_tiles_palette:
     dc.w    0x111,0x555,0xbbb,0x223,0x345,0x467,0x689,0x9bd,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0

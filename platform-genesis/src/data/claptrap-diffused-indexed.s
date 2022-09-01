@@ -1,8 +1,26 @@
-// png2asm ../data/temp\claptrap-diffused-indexed.png
+// png.to_asm ../data/temp\claptrap-diffused-indexed.png
+#include "claptrap-diffused-indexed.h"
+
 .text
+    // data
     .global claptrap_diffused_indexed_data
     .global claptrap_diffused_indexed_palette
+    // struct
+    .global ClaptrapDiffusedIndexed
+    .global ClaptrapDiffusedIndexedData
+    .global ClaptrapDiffusedIndexedPalette
+    .global ClaptrapDiffusedIndexedTileCount
 
+// struct
+ClaptrapDiffusedIndexed:
+ClaptrapDiffusedIndexedData:
+    dc.l    claptrap_diffused_indexed_data
+ClaptrapDiffusedIndexedTileCount:
+    dc.w    CLAPTRAP_DIFFUSED_INDEXED_TILE_COUNT
+ClaptrapDiffusedIndexedPalette:
+    dc.l    claptrap_diffused_indexed_palette
+
+// image data
 claptrap_diffused_indexed_data:
     dc.l    0x11111111,0x11111111,0x11111111,0x22111111,0x22221111,0x22333a11,0x33444421,0x45555543
     dc.l    0x11222322,0x11223321,0x11a23322,0x11223332,0x11223433,0x1a223443,0x1222344f,0x44223554
@@ -1125,5 +1143,6 @@ claptrap_diffused_indexed_data:
     dc.l    0x32232222,0x33332232,0x3a2a32a3,0x23232322,0x22322333,0x3a323a32,0x33222322,0x22322233
     dc.l    0x2a212212,0x22222222,0x22222222,0x3323a222,0x3a432222,0x32443223,0x232323a3,0x233a3232
 
+// palette data
 claptrap_diffused_indexed_palette:
     dc.w    0xfff,0xbbc,0x99a,0x88a,0x778,0x667,0x555,0x234,0x222,0x0,0xba7,0x984,0x543,0x0,0x6bd,0x55b

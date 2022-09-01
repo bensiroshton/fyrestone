@@ -1,8 +1,26 @@
-// png2asm ../data/temp\vault-symbol-indexed.png
+// png.to_asm ../data/temp\vault-symbol-indexed.png
+#include "vault-symbol-indexed.h"
+
 .text
+    // data
     .global vault_symbol_indexed_data
     .global vault_symbol_indexed_palette
+    // struct
+    .global VaultSymbolIndexed
+    .global VaultSymbolIndexedData
+    .global VaultSymbolIndexedPalette
+    .global VaultSymbolIndexedTileCount
 
+// struct
+VaultSymbolIndexed:
+VaultSymbolIndexedData:
+    dc.l    vault_symbol_indexed_data
+VaultSymbolIndexedTileCount:
+    dc.w    VAULT_SYMBOL_INDEXED_TILE_COUNT
+VaultSymbolIndexedPalette:
+    dc.l    vault_symbol_indexed_palette
+
+// image data
 vault_symbol_indexed_data:
     dc.l    0x44344434,0x34434343,0x44344344,0x43434434,0x44434343,0x34344344,0x43434343,0x34443434
     dc.l    0x43434434,0x43443434,0x34343434,0x34343434,0x44343434,0x34343434,0x43434343,0x34343434
@@ -1125,5 +1143,6 @@ vault_symbol_indexed_data:
     dc.l    0x43434343,0x34343434,0x43434434,0x34343434,0x34434434,0x34343434,0x44344344,0x43443443
     dc.l    0x44343434,0x43434444,0x34443434,0x43434344,0x34444434,0x43434344,0x34444443,0x44434344
 
+// palette data
 vault_symbol_indexed_palette:
     dc.w    0x777,0x666,0x444,0x333,0x111,0x0,0x16b,0x269,0x149,0x138,0x18,0x11b,0x13b,0x14b,0x125,0x14

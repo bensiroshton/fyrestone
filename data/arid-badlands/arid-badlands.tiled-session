@@ -26,6 +26,14 @@
                 "y": 0.5
             }
         },
+        "arid-badlands.tmj": {
+            "scale": 1,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 1661,
+                "y": 1788.5
+            }
+        },
         "arid-badlands.tmx": {
             "scale": 5.5,
             "selectedLayer": 1,
@@ -52,7 +60,9 @@
         "arid-badlands-map.tsx"
     ],
     "project": "arid-badlands.tiled-project",
+    "property.type": "bool",
     "recentFiles": [
+        "arid-badlands.tmj",
         "arid-badlands-map.tsx",
         "arid-badlands.json",
         "arid-badlands-map.json",

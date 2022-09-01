@@ -1,4 +1,5 @@
 #include "hw.h"
+#include "app.h"
 
 .text
     .global VDPInit
@@ -131,7 +132,7 @@ VDPLoadPalette:
 // d0 = vram destination (VDP_PLANEA, VDP_PLANEB, VDP_WINDOW)
 // d1 = number of tiles
 //----------------------------------------------------------------------
-VDPLoadTileMap:    
+VDPLoadTileMap:
     jsr VDPSetVRAMAddressCommand
 
     and.l   #0xffff, %d1
@@ -143,26 +144,32 @@ VDPLoadTileMap:
 
 //----------------------------------------------------------------------
 // VDPLoadTileData
-// a0.l = data address (source)
-// d0.w = offset (in vram)
-// d1.w = number of tiles
+// a0.l = address to tile data structure (source)
+// d0.w = write offset (in vram)
 // each tile is 8 x 8, each row is 4 bytes.
 //----------------------------------------------------------------------
 VDPLoadTileData:
-    and.l   #0xffff, %d1
     jsr VDPSetVRAMAddressCommand
+    
+    movm.l %a1, -(%sp)      // save registers
+    
+    move.l (%a0), %a1       // set tile data
+    move.w 4(%a0), %d0      // set tile count
+    and.l   #0xffff, %d0
 
-    subq.w #1, %d1
-.VDPLoadTileData_Loop: // unrolled for each tile
-    move.l (%a0)+, (VDP_DATA)
-    move.l (%a0)+, (VDP_DATA)
-    move.l (%a0)+, (VDP_DATA)
-    move.l (%a0)+, (VDP_DATA)
-    move.l (%a0)+, (VDP_DATA)
-    move.l (%a0)+, (VDP_DATA)
-    move.l (%a0)+, (VDP_DATA)
-    move.l (%a0)+, (VDP_DATA)
-    dbf %d1, .VDPLoadTileData_Loop
+    subq.w #1, %d0
+.VDPLoadTileData_Loop:      // unrolled for each tile
+    move.l (%a1)+, (VDP_DATA)
+    move.l (%a1)+, (VDP_DATA)
+    move.l (%a1)+, (VDP_DATA)
+    move.l (%a1)+, (VDP_DATA)
+    move.l (%a1)+, (VDP_DATA)
+    move.l (%a1)+, (VDP_DATA)
+    move.l (%a1)+, (VDP_DATA)
+    move.l (%a1)+, (VDP_DATA)
+    dbf %d0, .VDPLoadTileData_Loop
+
+    movm.l (%sp)+, %a1      // restore registers
     rts
 
 //----------------------------------------------------------------------
@@ -192,7 +199,7 @@ VDPSetTileMapFillBlockLinear:
     move.w %d1, (VDP_DATA)
     add.w #1, %d1
     dbf %d4, .VDPSetTileMapFillBlockLinear_LoopWidth
-    add.l #128, %d0  // go to next destination row, add map width x 2 (bytes), TODO: use VDP_REG_PLANE_SIZE.
+    add.l #MAP_WIDTH_BYTES, %d0  // go to next destination row
     dbf %d3, .VDPSetTileMapFillBlockLinear_LoopHeight
 
     movm.l (%sp)+, %d4 // restore d4
@@ -209,13 +216,13 @@ VDPSetTileMapFillBlockLinear:
 //----------------------------------------------------------------------
 VDPDrawText:
     // set vram offset where we are going to draw our text
-    mulu.w #128, %d2        // y offset = y * map width, TODO: determine if we want to hard code the map width here, depends on map resolution settings but probably wont change per app.
+    mulu.w #MAP_WIDTH_BYTES, %d2 // y offset = y * map width
     mulu.w #2, %d1          // x offset = x * 2 bytes
     add.w %d2, %d1          // d1 = x offset + y offset
     add.w %d1, %d0          // d0 (plane offset) += xy offsets
     jsr VDPSetVRAMAddressCommand
 
-    move (%a0), %d2         // set d2 to our tile offset in vram
+    move #FONT_VRAM, %d2    // set d2 to our tile offset in vram
     lsr.w #5, %d2           // divide by 32 (get tile index offset)
 
     lsl.w #8, %d3           // shift palette index << 13
@@ -228,7 +235,7 @@ VDPDrawText:
 
     move.w #0, %d0          // clear d0
     move.b (%a1)+, %d0      // copy character to d0, prepare next
-    sub.w 2(%a0), %d0       // subtract character start from d0 (this is our offset into the character tiles 0=first tile)
+    sub.w 6(%a0), %d0       // subtract character start from d0 (this is our offset into the character tiles 0=first tile)
     add.w %d2, %d0          // add tile offset
     or.w %d3, %d0           // set palette
     move.w %d0, (VDP_DATA)  // set map tile to our character index

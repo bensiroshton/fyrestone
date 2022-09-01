@@ -1,4 +1,4 @@
-// png2asm ../data/temp\claptrap-diffused-indexed.png
+// png.to_asm ../data/temp\claptrap-diffused-indexed.png
 
 #define CLAPTRAP_DIFFUSED_INDEXED_WIDTH_TILES   40
 #define CLAPTRAP_DIFFUSED_INDEXED_HEIGHT_TILES  28

@@ -2,23 +2,6 @@
 #include "func.i"
 #include "data/claptrap-diffused-indexed.h"
 #include "data/WillowBody_CYR.h"
-#include "data/arid_badlands_map.h"
-
-// MainFont
-MainFont:
-MainFontVRAM:
-    dc.w    0xb400
-MainFontCharStart:
-    dc.w    WILLOWBODY_CYR_CHAR_START
-
-// WorldMap
-WorldMap:
-WorldMapData:
-    dc.l    arid_badlands_planeb_data
-WorldMapWidth: // in tiles
-    dc.w    ARID_BADLANDS_PLANEB_MAP_WIDTH
-WorldMapHeight: // in tiles
-    dc.w    ARID_BADLANDS_PLANEB_MAP_HEIGHT
 
 // Some test data
 TestPalette:
@@ -68,14 +51,13 @@ TileMapTest:
     rts
 
 LoadFont:
-    move.l #willowbody_cyr_data, %a0
-    move.w MainFontVRAM, %d0                // vram offset to store tiles
-    move.w #WILLOWBODY_CYR_CHAR_COUNT, %d1  // number of tiles
+    move.l #WillowbodyCyrFont, %a0
+    move.w #0xb400, %d0         // vram offset to store tiles
     jsr VDPLoadTileData
     rts
 
 TestText:
-    move.l #MainFont, %a0
+    move.l #WillowbodyCyrFont, %a0
     move.l #TestString2, %a1
     move.w #VDP_PLANEA, %d0
     move.w #0, %d1  // x
@@ -83,7 +65,7 @@ TestText:
     move.w #0, %d3  // palette
     jsr VDPDrawText
     
-    move.l #MainFont, %a0
+    move.l #WillowbodyCyrFont, %a0
     move.l #TestString, %a1
     move.w #VDP_PLANEA, %d0
     move.w #1, %d1  // x
@@ -91,7 +73,7 @@ TestText:
     move.w #0, %d3  // palette
     jsr VDPDrawText
 
-    move.l #MainFont, %a0
+    move.l #WillowbodyCyrFont, %a0
     move.l #TestString, %a1
     move.w #VDP_PLANEA, %d0
     move.w #2, %d1  // x
@@ -99,7 +81,7 @@ TestText:
     move.w #0, %d3  // palette
     jsr VDPDrawText
 
-    move.l #MainFont, %a0
+    move.l #WillowbodyCyrFont, %a0
     move.l #TestString, %a1
     move.w #VDP_PLANEA, %d0
     move.w #3, %d1  // x
@@ -117,9 +99,8 @@ TileDataTest:
     jsr VDPLoadPalette
 
     // load tiles
-    move.l #claptrap_diffused_indexed_data, %a0
-    move.w #32, %d0                                     // vram offset to store tiles (32 = skip first tile)
-    move.w #CLAPTRAP_DIFFUSED_INDEXED_TILE_COUNT, %d1   // number of tiles
+    move.l #ClaptrapIndexed, %a0
+    move.w #32, %d0             // vram offset to store tiles (32 = skip first tile)
     jsr VDPLoadTileData
 
     // set tile indexes

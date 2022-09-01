@@ -1,6 +1,7 @@
 import os.path as path
 import png
 from libgen import vdp
+from libgen import util
 
 def to_asm(source, options):
 
@@ -23,7 +24,8 @@ def to_asm(source, options):
 	baseLabel = baseLabel.lower()
 
 	outFile = path.join(options["outFolder"], f"{baseName}.s")
-	outHeaderFile = path.join(options["outFolder"], f"{baseName}.h")
+	outHeaderFileName = f"{baseName}.h"
+	outHeaderFile = path.join(options["outFolder"], outHeaderFileName)
 	info["outFile"] = outFile
 	info["outHeader"] = outHeaderFile
 
@@ -106,9 +108,10 @@ def to_asm(source, options):
 	includeData = not "includeData" in options or options["includeData"]
 	includePallete = not "includePalette" in options or options["includePalette"]
 
-	with open(outHeaderFile, "w") as fo:
-		defLabel = baseLabel.upper()
+	defLabel = baseLabel.upper()
 
+	with open(outHeaderFile, "w") as fo:
+	
 		fo.write(f"// png.to_asm {source}\n\n")
 		if includeData:
 			fo.write(f"#define {defLabel}_WIDTH_TILES   {wt}\n")
@@ -121,15 +124,43 @@ def to_asm(source, options):
 
 	with open(outFile, "w") as fo:
 		fo.write(f"// png.to_asm {source}\n")
-		fo.write(".text\n")
-		if includeData:
-			fo.write(f"    .global {baseLabel}_data\n")
-		if includePallete:
-			fo.write(f"    .global {baseLabel}_palette\n")
+		fo.write(f"#include \"{outHeaderFileName}\"\n")
 		fo.write("\n")
+
+		dataLabel = f"{baseLabel}_data"
+		paletteLabel = f"{baseLabel}_palette"
+		structLabel = util.to_upper_camel(baseLabel)
+
+		fo.write(".text\n")
+		fo.write("    // data\n")
+		if includeData:
+			fo.write(f"    .global {dataLabel}\n")
+		if includePallete:
+			fo.write(f"    .global {paletteLabel}\n")
+		if includeData and includePallete:
+			fo.write("    // struct\n")
+			fo.write(f"    .global {structLabel}\n")
+			fo.write(f"    .global {structLabel}Data\n")
+			fo.write(f"    .global {structLabel}Palette\n")
+			fo.write(f"    .global {structLabel}TileCount\n")
+
+		fo.write("\n")
+
+		# image struct
+		if includeData and includePallete:
+			fo.write("// struct\n")
+			fo.write(f"{structLabel}:\n")
+			fo.write(f"{structLabel}Data:\n")
+			fo.write(f"    dc.l    {dataLabel}\n")
+			fo.write(f"{structLabel}TileCount:\n")
+			fo.write(f"    dc.w    {defLabel}_TILE_COUNT\n")
+			fo.write(f"{structLabel}Palette:\n")
+			fo.write(f"    dc.l    {paletteLabel}\n")
+			fo.write("\n")		
 
 		# image data
 		if includeData:
+			fo.write("// image data\n")
 			fo.write(f"{baseLabel}_data:\n")
 			for ti in range(0, outTilesLen):
 				tileData = outTiles[ti]
@@ -142,6 +173,7 @@ def to_asm(source, options):
 
 		# palette data
 		if includePallete:
+			fo.write("// palette data\n")
 			fo.write(f"{baseLabel}_palette:\n")
 			fo.write("    dc.w    ")
 			for i in range(0, palLen - 1):

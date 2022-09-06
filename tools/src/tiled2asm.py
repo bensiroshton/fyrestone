@@ -135,9 +135,13 @@ def process_source(sourceFile, options):
 					# D = Diagnol Flip (For isometric maps)
 					# 0 = Ignore
 					# X = Tile ID
-					hFlip = tile >> 31
-					vFlip = tile >> 30 & 0x01
-					tileId = tile & 0xfffffff
+					if tile == 0:
+						tileId = 0
+					else:
+						hFlip = tile >> 31
+						vFlip = tile >> 30 & 0x01
+						tileId = tile & 0xfffffff
+						tileId -= 1 # TODO: get firstgid
 					
 					if tileId > 1023:
 						log.print("ERROR: Tile indexes must be 10-bit values.")
@@ -227,7 +231,7 @@ def process_source(sourceFile, options):
 			fo.write(f"// map data (indexed tiles)\n")
 			fo.write(f"{dataLabel}:\n")
 			for y in range(0, mapHeight):
-				fo.write("    dc.l    ")
+				fo.write("    dc.w    ")
 				for x in range(0, mapWidth - 1):
 					fo.write(f"{hex(tiles[y][x])},")
 				fo.write(f"{hex(tiles[y][mapWidth -1])}\n")

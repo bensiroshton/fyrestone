@@ -5,9 +5,9 @@
     .global VDPInit
     .global VDPClearCRAM
     .global VDPLoadPalette
-    .global VDPLoadTileMap
-    .global VDPLoadTileData
-    .global VDPSetTileMapFillBlockLinear
+    .global VDPLoadTileIndexData
+    .global VDPLoadTilePixelData
+    .global VDPFillTileMap
     .global VDPDrawText
 
 //----------------------------------------------------------------------
@@ -127,28 +127,12 @@ VDPLoadPalette:
     rts
 
 //----------------------------------------------------------------------
-// VDPLoadTileMap
-// a0 = map address
-// d0 = vram destination (VDP_PLANEA, VDP_PLANEB, VDP_WINDOW)
-// d1 = number of tiles
-//----------------------------------------------------------------------
-VDPLoadTileMap:
-    jsr VDPSetVRAMAddressCommand
-
-    and.l   #0xffff, %d1
-    subq.w #1, %d1
-.VDPLoadTileMap_Loop:
-    move.w (%a0)+, (VDP_DATA)
-    dbf %d1, .VDPLoadTileMap_Loop
-    rts
-
-//----------------------------------------------------------------------
-// VDPLoadTileData
+// VDPLoadTilePixelData
 // a0.l = address to tile data structure (source)
 // d0.w = write offset (in vram)
 // each tile is 8 x 8, each row is 4 bytes.
 //----------------------------------------------------------------------
-VDPLoadTileData:
+VDPLoadTilePixelData:
     jsr VDPSetVRAMAddressCommand
     
     movm.l %a1, -(%sp)      // save registers
@@ -158,7 +142,7 @@ VDPLoadTileData:
     and.l   #0xffff, %d0
 
     subq.w #1, %d0
-.VDPLoadTileData_Loop:      // unrolled for each tile
+.VDPLoadTilePixelData_Loop:      // unrolled for each tile
     move.l (%a1)+, (VDP_DATA)
     move.l (%a1)+, (VDP_DATA)
     move.l (%a1)+, (VDP_DATA)
@@ -167,20 +151,20 @@ VDPLoadTileData:
     move.l (%a1)+, (VDP_DATA)
     move.l (%a1)+, (VDP_DATA)
     move.l (%a1)+, (VDP_DATA)
-    dbf %d0, .VDPLoadTileData_Loop
+    dbf %d0, .VDPLoadTilePixelData_Loop
 
     movm.l (%sp)+, %a1      // restore registers
     rts
 
 //----------------------------------------------------------------------
-// VDPSetTileMapFillBlockLinear
+// VDPFillTileMap
 // fill a square of the tile map starting at X to (X + size)
 // d0.w = map offset (in vram)
 // d1.w = tile index start 
 // d2.w = width (in tiles)
 // d3.w = height (in tiles)
 //----------------------------------------------------------------------
-VDPSetTileMapFillBlockLinear:
+VDPFillTileMap:
     movm.l %d4, -(%sp)  // save d4
 
     and.l   #0xffff, %d2
@@ -203,6 +187,75 @@ VDPSetTileMapFillBlockLinear:
     dbf %d3, .VDPSetTileMapFillBlockLinear_LoopHeight
 
     movm.l (%sp)+, %d4 // restore d4
+    rts
+
+
+//----------------------------------------------------------------------
+// VDPLoadTileIndexData
+// a0 = address to tile map structure
+// d0.w = vram destination (VDP_PLANEA, VDP_PLANEB, VDP_WINDOW)
+// d1.w = x source
+// d2.w = y source
+// d3.w = x destination
+// d4.w = y destination
+// d5.w = width
+// d6.w = height
+
+//AridBadlandsPlaneB:
+//AridBadlandsPlaneBData:
+//    dc.l    arid_badlands_plane_b_data
+//AridBadlandsPlaneBWidth:
+//    dc.w    ARID_BADLANDS_PLANE_B_MAP_WIDTH
+//AridBadlandsPlaneBHeight:
+//    dc.w    ARID_BADLANDS_PLANE_B_MAP_HEIGHT
+//----------------------------------------------------------------------
+VDPLoadTileIndexData:
+    // set %d0 to initial vram position
+    add.w %d3, %d0                  // add x offset to vram dest
+    add.w %d3, %d0                  // repeat (2 bytes)
+    mulu.w #MAP_WIDTH_BYTES, %d4    // update y dest offset with map width
+    add.w %d4, %d0                  // add y offset to vram dest
+                                    // d3 and d4 are now free to use
+    // d0 = vram offset
+
+    // store source row stride in d4 (width * 2 bytes)
+    move.w 4(%a0), %d4
+    lsl.w #1, %d4
+    // d4 = row stride
+
+    // replace a0 with our source data pointer at initial xy source positions
+    move.l %d4, %d3                 // row bytes
+    mulu.w %d2, %d3                 // y offset
+    add.w %d1, %d3                  // x offset
+    add.w %d1, %d3                  // repeat (2 bytes)
+    add.l (%a0), %d3                // add source data offset
+    move.l %d3, %a0                 // store in a0
+    // a0 = source data offset
+
+    subq.w #1, %d6                  // loop while height counter
+    // d6 = height counter
+.VDPLoadTileIndexData_YLoop:
+    move.w %d5, %d3                 // copy width
+    subq.w #1, %d3                  // loop while width counter
+    // d3 = width counter
+
+    move.w %d0, -(%sp)
+    jsr VDPSetVRAMAddressCommand    // set our VRAM destination to d0
+    move.w (%sp)+, %d0
+
+.VDPLoadTileIndexData_XLoop:
+    move.w (%a0)+, (VDP_DATA)
+    dbf %d3, .VDPLoadTileIndexData_XLoop
+
+    // move our src data pointer to the next row
+    add.l %d4, %a0                  // add row stride (sourc map)
+    sub.l %d5, %a0                  // subtract x offset we added in XLoop
+    sub.l %d5, %a0                  // repeat (2 bytes)
+
+    // update %d0 to our new VRAM destination
+    add.w #MAP_WIDTH_BYTES, %d0     // add row stride (vram)
+
+    dbf %d6, .VDPLoadTileIndexData_YLoop
     rts
 
 //----------------------------------------------------------------------

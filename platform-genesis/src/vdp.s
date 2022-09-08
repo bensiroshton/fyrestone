@@ -163,30 +163,36 @@ VDPLoadTilePixelData:
 // d1.w = tile index start 
 // d2.w = width (in tiles)
 // d3.w = height (in tiles)
+// d4.w = pallette index
 //----------------------------------------------------------------------
 VDPFillTileMap:
-    movm.l %d4, -(%sp)  // save d4
+    movm.l %d5-%d6, -(%sp)      // save registers
 
-    and.l   #0xffff, %d2
-    and.l   #0xffff, %d3
+    lsl.w #8, %d4               // shift palette index << 13 to blend with tile properties
+    lsl.w #5, %d4
+
     // loop height in %d3
     subq.w #1, %d3
 .VDPSetTileMapFillBlockLinear_LoopHeight:
+    // set vram dest
     movm.l %d0, -(%sp)
     jsr VDPSetVRAMAddressCommand
     movm.l (%sp)+, %d0
 
-    // loop width in %d4
-    move.w %d2, %d4 // use width as a temp var in d4
-    subq.w #1, %d4
+    // loop width 
+    move.w %d2, %d5             // use width as a temp var in d5
+    subq.w #1, %d5
 .VDPSetTileMapFillBlockLinear_LoopWidth:
-    move.w %d1, (VDP_DATA)
-    add.w #1, %d1
-    dbf %d4, .VDPSetTileMapFillBlockLinear_LoopWidth
-    add.l #MAP_WIDTH_BYTES, %d0  // go to next destination row
+    move.w %d1, %d6             // d6 = palette index << 13 | tile id
+    or.w %d4, %d6
+    move.w %d6, (VDP_DATA)      // send to vram
+    add.w #1, %d1               // increment tile id
+    dbf %d5, .VDPSetTileMapFillBlockLinear_LoopWidth
+
+    add.l #MAP_WIDTH_BYTES, %d0 // go to next destination row
     dbf %d3, .VDPSetTileMapFillBlockLinear_LoopHeight
 
-    movm.l (%sp)+, %d4 // restore d4
+    movm.l (%sp)+, %d5-%d6      // restore registers
     rts
 
 

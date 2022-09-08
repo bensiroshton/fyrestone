@@ -1,14 +1,9 @@
 #include "hw.h"
+#include "app.h"
 #include "func.i"
-#include "data/claptrap-diffused-indexed.h"
+#include "data/borderlands-reduced.h"
+#include "data/wasteland-tiles.h"
 #include "data/WillowBody_CYR.h"
-
-// Some test data
-TestPalette:
-    dc.w    0x0333,0x0115,0x0356,0x0139,0x0031,0x0033,0x0785,0x05cd,0x0a9d,0x0eee,0x0154,0x04ee,0x098a,0x0743,0x0f95,0x079a
-
-ClearPalette:
-    dc.w    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
 VersionLabel:
     .asciz  "Borderlands v0.00001"
@@ -32,21 +27,13 @@ ControllerState:
 // Main
 func main
     jsr VDPInit
-    //jsr PaletteTest
-    //jsr TileDataTest
     jsr LoadWorldData
+    jsr LoadOverlay
     jsr LoadFont
     jsr TestText
 .mainLoop:
     jsr DrawWorld
     jmp .mainLoop
-
-PaletteTest:
-    move.l #TestPalette, %a0    // palette address
-    move.w #0, %d0              // palette slot
-    move.w #1, %d1              // number of palettes
-    jsr VDPLoadPalette
-    rts
 
 LoadFont:
     move.l #WillowbodyCyrFont, %a0
@@ -65,23 +52,27 @@ TestText:
     
     rts
 
-TileDataTest:
+LoadOverlay:
     // load palette
-    move.l #claptrap_diffused_indexed_palette, %a0
-    move.w #0, %d0              // palette slot
+    move.l #borderlands_reduced_palette, %a0
+    move.w #1, %d0              // palette slot
     move.w #1, %d1              // number of palettes
     jsr VDPLoadPalette
 
     // load tiles pixels
-    move.l #ClaptrapIndexed, %a0
-    move.w #32, %d0             // vram offset to store tiles (32 = skip first tile)
+    move.l #BorderlandsReduced, %a0
+    move.w #WASTELAND_TILES_TILE_COUNT, %d0     // load after our world map tiles
+    mulu.w #32, %d0                             // 32 bytes per tile, d0 = vram offset
     jsr VDPLoadTilePixelData
 
     // set tile indexes
-    move.l #VDP_PLANEB, %d0     // offset in vram
-    move.w #1, %d1              // start tile index
-    move.w #CLAPTRAP_DIFFUSED_INDEXED_WIDTH_TILES, %d2
-    move.w #CLAPTRAP_DIFFUSED_INDEXED_HEIGHT_TILES, %d3
+    move.l #VDP_PLANEA, %d0                             // offset in vram
+    add.l #5 * 2, %d0                                   // x dest (x2 bytes)
+    add.l #MAP_WIDTH_BYTES * 5, %d0                     // y dest
+    move.l #WASTELAND_TILES_TILE_COUNT, %d1             // start tile index (after world tiles)
+    move.l #BORDERLANDS_REDUCED_WIDTH_TILES, %d2
+    move.l #BORDERLANDS_REDUCED_HEIGHT_TILES, %d3
+    move.l #1, %d4                                      // palette index to use
     jsr VDPFillTileMap
     rts
 

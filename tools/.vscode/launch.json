@@ -20,7 +20,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "-i", "../data/arid-badlands/wasteland-tiles.png",
+                "-i", "../data/title/borderlands-reduced.png",
                 "-o", "../platform-genesis/src/data",
                 "-w"
             ]

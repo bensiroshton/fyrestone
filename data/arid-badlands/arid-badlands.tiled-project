@@ -1,6 +1,16 @@
 {
     "automappingRulesFile": "",
     "commands": [
+        {
+            "arguments": "C:\\work\\dev\\games\\fyrestone\\tools\\src\\tiled2asm.py -i %mapfile -o C:\\work\\dev\\games\\fyrestone\\platform-genesis\\src\\data -w",
+            "command": "python",
+            "enabled": true,
+            "name": "tiled2asm",
+            "saveBeforeExecute": true,
+            "shortcut": "Ctrl+S",
+            "showOutput": true,
+            "workingDirectory": "C:\\work\\dev\\games\\fyrestone\\data"
+        }
     ],
     "extensionsPath": "extensions",
     "folders": [

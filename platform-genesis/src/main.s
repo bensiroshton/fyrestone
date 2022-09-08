@@ -10,20 +10,23 @@ TestPalette:
 ClearPalette:
     dc.w    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
-TestString:
-    .asciz  "Hello World! This is a test string..."
+VersionLabel:
+    .asciz  "Borderlands v0.00001"
     .align  2
 
-TestString2:
-    .asciz  "0123456789"
-    .align  2
+.data // Variables
 
 World:
-    ds.l    1   // address to tile map
+    .long    0   // address to tile map
 WorldTilePosX:
-    ds.w    1   // x tile position within tile map
+    .word    0   // x tile position within tile map
 WorldTilePosY:
-    ds.w    1   // y tile position within tile map
+    .word    0   // y tile position within tile map
+
+ControllerState:
+    .long    0
+
+.text // End Variables
 
 
 // Main
@@ -31,11 +34,11 @@ func main
     jsr VDPInit
     //jsr PaletteTest
     //jsr TileDataTest
-    jsr DrawWorld
+    jsr LoadWorldData
     jsr LoadFont
     jsr TestText
 .mainLoop:
-    add.l #1, %d7 // debug ticker
+    jsr DrawWorld
     jmp .mainLoop
 
 PaletteTest:
@@ -53,37 +56,13 @@ LoadFont:
 
 TestText:
     move.l #WillowbodyCyrFont, %a0
-    move.l #TestString2, %a1
+    move.l #VersionLabel, %a1
     move.w #VDP_PLANEA, %d0
     move.w #0, %d1  // x
     move.w #0, %d2  // y
     move.w #1, %d3  // palette
     jsr VDPDrawText
     
-    move.l #WillowbodyCyrFont, %a0
-    move.l #TestString, %a1
-    move.w #VDP_PLANEA, %d0
-    move.w #1, %d1  // x
-    move.w #1, %d2  // y
-    move.w #2, %d3  // palette
-    jsr VDPDrawText
-
-    move.l #WillowbodyCyrFont, %a0
-    move.l #TestString, %a1
-    move.w #VDP_PLANEA, %d0
-    move.w #2, %d1  // x
-    move.w #2, %d2  // y
-    move.w #3, %d3  // palette
-    jsr VDPDrawText
-
-    move.l #WillowbodyCyrFont, %a0
-    move.l #TestString, %a1
-    move.w #VDP_PLANEA, %d0
-    move.w #3, %d1  // x
-    move.w #3, %d2  // y
-    move.w #1, %d3  // palette
-    jsr VDPDrawText
-
     rts
 
 TileDataTest:
@@ -106,9 +85,7 @@ TileDataTest:
     jsr VDPFillTileMap
     rts
 
-DrawWorld:
-    // TODO: we don't want to load the palette and tile pixels here.
-
+LoadWorldData:
     // load palette
     move.l #wasteland_tiles_palette, %a0
     move.w #0, %d0              // palette slot
@@ -117,16 +94,49 @@ DrawWorld:
 
     // load tile pixels
     move.l #WastelandTiles, %a0
-    move.w #0, %d0             // vram offset to store tiles
+    move.w #0, %d0              // vram offset to store tiles
     jsr VDPLoadTilePixelData
+
+    rts
+
+DrawWorld:
+    jsr InputReadP1             // d0 = 0000MXYZSACBRLDU
+    move.l %d0, (ControllerState)
+    move.l %d0, %d5
+
+    // get world tile positions
+    move.w (WorldTilePosX), %d1 // x source -> VDPLoadTileIndexData
+    move.w (WorldTilePosY), %d2 // y source -> VDPLoadTileIndexData
+
+    // move with joystick?
+.DrawWorld_BtnRight:
+    btst #IO_BTN_BIT_RIGHT, %d0 // check
+    bne.s .DrawWorld_BtnLeft    // skip?
+    add.w #1, %d1               // action
+.DrawWorld_BtnLeft:
+    btst #IO_BTN_BIT_LEFT, %d0  // check
+    bne.s .DrawWorld_BtnUp      // skip?
+    sub.w #1, %d1               // action
+.DrawWorld_BtnUp:
+    btst #IO_BTN_BIT_UP, %d0    // check
+    bne.s .DrawWorld_BtnDown    // skip?
+    sub.w #1, %d2               // action
+.DrawWorld_BtnDown:
+    btst #IO_BTN_BIT_DOWN, %d0  // check
+    bne.s .DrawWorld_BtnFinish  // skip?
+    add.w #1, %d2               // action
+.DrawWorld_BtnFinish:
+    move.w %d1, (WorldTilePosX)
+    move.w %d2, (WorldTilePosY)
 
     // load index data
     move.l #AridBadlandsPlaneB, %a0 // map index structure
     move.l #VDP_PLANEB, %d0         // vram destination
-    move.l #10, %d1                  // x source
-    move.l #10, %d2                 // y source
+                                    // x source, y source = d1, d2
     move.l #0, %d3                  // x dest
     move.l #0, %d4                  // y dest
     move.l #40, %d5                 // width
     move.l #28, %d6                 // height
     jsr VDPLoadTileIndexData
+
+    rts

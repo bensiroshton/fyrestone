@@ -137,6 +137,8 @@ def process_source(sourceFile, options):
 					# X = Tile ID
 					if tile == 0:
 						tileId = 0
+						hFlip = 0
+						vFlip = 0
 					else:
 						hFlip = tile >> 31
 						vFlip = tile >> 30 & 0x01

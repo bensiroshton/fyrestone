@@ -1,5 +1,5 @@
 {
-    "activeFile": "wasteland.tsj",
+    "activeFile": "arid-badlands.tmj",
     "expandedProjectPaths": [
         "."
     ],
@@ -31,11 +31,11 @@
             }
         },
         "arid-badlands.tmj": {
-            "scale": 1,
+            "scale": 1.5,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 1660.5,
-                "y": 1788.5
+                "x": 419.66666666666663,
+                "y": 484.99999999999994
             }
         },
         "arid-badlands.tmx": {
@@ -51,8 +51,8 @@
             "scaleInEditor": 1
         },
         "wasteland.tsj": {
-            "scaleInDock": 1,
-            "scaleInEditor": 1
+            "scaleInDock": 8,
+            "scaleInEditor": 8
         },
         "wasteland.tsx": {
             "scaleInDock": 1,
@@ -65,15 +65,14 @@
     "map.lastUsedFormat": "json",
     "openFiles": [
         "arid-badlands.tmj",
-        "arid-badlands-map.tsj",
         "wasteland.tsj"
     ],
     "project": "arid-badlands.tiled-project",
     "property.type": "bool",
     "recentFiles": [
+        "wasteland.tsj",
         "arid-badlands.tmj",
         "arid-badlands-map.tsj",
-        "wasteland.tsj",
         "arid-badlands-map.tsx",
         "arid-badlands.json",
         "arid-badlands-map.json",

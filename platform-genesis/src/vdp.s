@@ -11,7 +11,7 @@
     .global VDPDrawText
 
 //----------------------------------------------------------------------
-// get a VDP command address with a given offset
+// Get a VDP command address with a given offset
 // since this is a macro it only works with fixed values, ie., you can't pass in a register for example.
 // command:
 //  VDP_VRAM_ADDR_CMD

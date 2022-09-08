@@ -8,7 +8,7 @@
 void test();
 char testGetChar(char *);
 
-int main()
+int not_main()
 {
     test();
 

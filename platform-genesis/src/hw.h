@@ -48,9 +48,9 @@
 
 // Tile Attributes
 // 2 Bytes Per Tile
-// 15 14 13 12 11 10 09 08 07 06 05 04 03 02 01
-// PR P1 P0 VF HF T9 T8 T7 T6 T5 T4 T3 T2 T1 T0 
-//  T0 - T9 : Tile Number
+// 15 14 13 12 11 10 09 08 07 06 05 04 03 02 01 00
+// PR P1 P0 VF HF TT T9 T8 T7 T6 T5 T4 T3 T2 T1 T0 
+//  T0 - TT : Tile Number
 //       HF : Horizontal Flip
 //       VF : Vertical Flip
 //  P0 - P1 : Palette Number
@@ -67,5 +67,45 @@
 
 #define TILE_LOPRI          0x0000      // Low priority (default)
 #define TILE_HIPRI          0x8000      // High priority
+
+
+// Input
+#define IO_CTRL_1           0xa10009
+#define IO_CTRL_2           0xa1000b
+#define IO_DATA_1           0xa10003
+#define IO_DATA_2           0xa10005
+// Controller Buttons
+// 15 14 13 12 11 10 09 08 07 06 05 04 03 02 01 00
+//  0  0  0  0  M  X  Y  Z  S  A  C  B  R  L  D  U
+#define IO_BTN_BIT_MODE     11
+#define IO_BTN_BIT_X        10
+#define IO_BTN_BIT_Y        9
+#define IO_BTN_BIT_Z        8
+#define IO_BTN_BIT_START    7
+#define IO_BTN_BIT_A        6
+#define IO_BTN_BIT_C        5
+#define IO_BTN_BIT_B        4
+#define IO_BTN_BIT_RIGHT    3
+#define IO_BTN_BIT_LEFT     2
+#define IO_BTN_BIT_DOWN     1
+#define IO_BTN_BIT_UP       0
+
+#define IO_BTN_MASK_MODE    0x0800
+#define IO_BTN_MASK_X       0x0400
+#define IO_BTN_MASK_Y       0x0200
+#define IO_BTN_MASK Z       0x0100
+#define IO_BTN_MASK_START   0x0080
+#define IO_BTN_MASK_A       0x0040
+#define IO_BTN_MASK_C       0x0020
+#define IO_BTN_MASK_MASK_B  0x0010
+#define IO_BTN_MASK_RIGHT   0x0008
+#define IO_BTN_MASK_LEFT    0x0004
+#define IO_BTN_MASK_DOWN    0x0002
+#define IO_BTN_MASK_UP      0x0001
+
+// Z80
+#define Z80_RAM             0xa00000    // Where Z80 RAM starts
+#define Z80_BUS_REQ         0xa11100    // Z80 bus request line
+#define Z80_RESET           0xa11200    // Z80 reset line
 
 #endif

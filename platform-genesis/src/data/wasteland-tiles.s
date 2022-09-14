@@ -1,4 +1,4 @@
-// png.to_asm C:/work/dev/games/fyrestone/data/arid-badlands\wasteland-tiles.png
+// png.to_asm ../data/arid-badlands\wasteland-tiles.png
 #include "wasteland-tiles.h"
 
 .text

@@ -161,7 +161,8 @@ def process_source(sourceFile, options):
 	with open(outHeaderFile, "w") as fo:
 
 		# file header
-		fo.write(f"// tiled2asm \"{sourceFile}\"\n\n")
+		fo.write(f"// tiled2asm \"{sourceFile}\"\n")
+		fo.write("\n")
 
 		# map details
 		for layer in layers:

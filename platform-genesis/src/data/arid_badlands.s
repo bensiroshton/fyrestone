@@ -1,4 +1,4 @@
-// tiled2asm "C:/work/dev/games/fyrestone/data/arid-badlands/arid-badlands.tmj"
+// tiled2asm "../data/arid-badlands/arid-badlands.tmj"
 #include "arid_badlands.h"
 
 .text

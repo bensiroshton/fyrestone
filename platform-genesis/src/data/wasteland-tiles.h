@@ -1,4 +1,4 @@
-// png.to_asm C:/work/dev/games/fyrestone/data/arid-badlands\wasteland-tiles.png
+// png.to_asm ../data/arid-badlands\wasteland-tiles.png
 
 #define WASTELAND_TILES_WIDTH_TILES   40
 #define WASTELAND_TILES_HEIGHT_TILES  14

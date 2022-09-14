@@ -196,6 +196,12 @@ VDPFillTileMap:
     rts
 
 
+
+//----------------------------------------------------------------------
+// 
+//----------------------------------------------------------------------
+VDPWrapMapPos:
+
 //----------------------------------------------------------------------
 // VDPLoadTileIndexData
 // a0 = address to tile map structure
@@ -206,14 +212,6 @@ VDPFillTileMap:
 // d4.w = y destination
 // d5.w = width
 // d6.w = height
-
-//AridBadlandsPlaneB:
-//AridBadlandsPlaneBData:
-//    dc.l    arid_badlands_plane_b_data
-//AridBadlandsPlaneBWidth:
-//    dc.w    ARID_BADLANDS_PLANE_B_MAP_WIDTH
-//AridBadlandsPlaneBHeight:
-//    dc.w    ARID_BADLANDS_PLANE_B_MAP_HEIGHT
 //----------------------------------------------------------------------
 VDPLoadTileIndexData:
     // set %d0 to initial vram position

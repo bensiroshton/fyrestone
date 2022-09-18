@@ -27,7 +27,7 @@ def process_tileset(sourceFile, options):
 		tileset = json.load(f)
 
 	if tileset is None:
-		log.println(f"ERROR: unable to load json: {sourceFile}")
+		log.error(f"Unable to load json: {sourceFile}")
 		return info
 
 	if "image" in tileset:
@@ -56,8 +56,10 @@ def process_source(sourceFile, options):
 	outSrcFile = path.join(options["outFolder"], f"{baseName}.s")
 	outHeaderFileName = f"{baseName}.h"
 	outHeaderFile = path.join(options["outFolder"], outHeaderFileName)
+	outCommonHeaderFile = path.join(options["outFolder"], "map_common.h")
 	info["outFile"] = outSrcFile
 	info["outHeader"] = outHeaderFile
+	info["outCommon"] = outCommonHeaderFile
 
 	if not options["overwrite"] and path.exists(outSrcFile):
 		log.println(f"skipping {outSrcFile}, it already exists and ovewrite is set to False.")
@@ -69,11 +71,11 @@ def process_source(sourceFile, options):
 		tiled = json.load(f)
 
 	if tiled is None:
-		log.println(f"ERROR: unable to load json: {sourceFile}")
+		log.error(f"Uunable to load json: {sourceFile}")
 		return info
 
 	if not "layers" in tiled:
-		log.println("ERROR: layers not found.")
+		log.error("Layers not found.")
 		return info
 
 	if "tilesets" in tiled:
@@ -92,6 +94,20 @@ def process_source(sourceFile, options):
 
 		if not "export" in props or props["export"] != True:
 			continue
+
+		plane = "B"
+		if "plane" in props:
+			plane = props["plane"].upper()
+		else:
+			log.warn(f"Property does not exist 'plane', defaulting to {plane}.")
+
+		if plane != "A" and plane != "B" and plane != "W":
+			log.error("Plane must be one of the following: A, B, W")
+
+		vram = None
+		if plane == "A": vram = "VDP_PLANEA"
+		elif plane == "B": vram = "VDP_PLANEB"
+		elif plane == "W": vram = "VDP_WINDOW"
 
 		if layer["type"] != "tilelayer":
 			continue
@@ -114,6 +130,8 @@ def process_source(sourceFile, options):
 			"height": mapHeight,
 			"tiles": tiles,
 			"outTilesSize": 0,
+			"plane": plane,
+			"vram": vram,
 		}
 		layers.append(outLayer)
 
@@ -146,7 +164,7 @@ def process_source(sourceFile, options):
 						tileId -= 1 # TODO: get firstgid
 					
 					if tileId > 1023:
-						log.print("ERROR: Tile indexes must be 10-bit values.")
+						log.error("Tile indexes must be 10-bit values.")
 						return info
 
 					tiles[chunkY + y][chunkX + x] = libgen.vdp.make_tile(tileId, hFlip, vFlip)
@@ -162,6 +180,8 @@ def process_source(sourceFile, options):
 
 		# file header
 		fo.write(f"// tiled2asm \"{sourceFile}\"\n")
+		fo.write("#include \"hw.h\"\n")
+		fo.write("#include \"app.h\"\n")
 		fo.write("\n")
 
 		# map details
@@ -171,13 +191,30 @@ def process_source(sourceFile, options):
 			mapWidth = layer["width"]
 			mapHeight = layer["height"]
 			tileCount = mapWidth * mapHeight
+			vram = layer["vram"]
 			defLabel = f"{baseLabel.upper()}_{layerName.upper()}"
 			fo.write(f"// Layer: {layerName}\n\n")
 			fo.write(f"#define {defLabel}_MAP_WIDTH  {mapWidth}\n")
 			fo.write(f"#define {defLabel}_MAP_HEIGHT {mapHeight}\n")
 			fo.write(f"#define {defLabel}_TILE_COUNT {tileCount}\n")
 			fo.write(f"#define {defLabel}_SIZE       {outTileSize}\n")
+			fo.write(f"#define {defLabel}_MAX_TILE_X {defLabel}_MAP_WIDTH - SCREEN_TILE_WIDTH\n")
+			fo.write(f"#define {defLabel}_MAX_TILE_Y {defLabel}_MAP_HEIGHT - SCREEN_TILE_HEIGHT\n")
+			fo.write(f"#define {defLabel}_VRAM       {vram}\n")
 			fo.write("\n")
+
+	with open(outCommonHeaderFile, "w") as fo:
+		# file header
+		fo.write("// tiled2asm commons\n\n")
+		fo.write("// Assembly Offsets\n")
+		fo.write("#define MAP_OS            0\n")
+		fo.write("#define MAP_OS_DATA_ADD   0\n")
+		fo.write("#define MAP_OS_WIDTH      4\n")
+		fo.write("#define MAP_OS_HEIGHT     6\n")
+		fo.write("#define MAP_OS_MAX_X      8\n")
+		fo.write("#define MAP_OS_MAX_Y      10\n")
+		fo.write("#define MAP_OS_VRAM       12\n")
+		fo.write("\n")
 
 	# write source file
 	with open(outSrcFile, "w") as fo:
@@ -200,6 +237,9 @@ def process_source(sourceFile, options):
 			fo.write(f"    .global {label}Data\n")
 			fo.write(f"    .global {label}Width\n")
 			fo.write(f"    .global {label}Height\n")
+			fo.write(f"    .global {label}MaxTileX\n")
+			fo.write(f"    .global {label}MaxTileY\n")
+			fo.write(f"    .global {label}VRam\n")
 
 		fo.write("\n")
 
@@ -213,12 +253,12 @@ def process_source(sourceFile, options):
 
 			fo.write(f"// map struct\n")
 			fo.write(f"{label}:\n")
-			fo.write(f"{label}Data:\n")
-			fo.write(f"    dc.l    {dataLabel}\n")
-			fo.write(f"{label}Width:\n")
-			fo.write(f"    dc.w    {defLabel}_MAP_WIDTH\n")
-			fo.write(f"{label}Height:\n")
-			fo.write(f"    dc.w    {defLabel}_MAP_HEIGHT\n")
+			fo.write(f"{label}Data:     dc.l    {dataLabel}\n")
+			fo.write(f"{label}Width:    dc.w    {defLabel}_MAP_WIDTH\n")
+			fo.write(f"{label}Height:   dc.w    {defLabel}_MAP_HEIGHT\n")
+			fo.write(f"{label}MaxTileX: dc.w    {defLabel}_MAX_TILE_X\n")
+			fo.write(f"{label}MaxTileY: dc.w    {defLabel}_MAX_TILE_Y\n")
+			fo.write(f"{label}VRam:     dc.l    {defLabel}_VRAM\n")
 			fo.write("\n")
 
 		# tile data

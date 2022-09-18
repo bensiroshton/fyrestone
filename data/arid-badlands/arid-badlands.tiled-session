@@ -68,7 +68,7 @@
         "wasteland.tsj"
     ],
     "project": "arid-badlands.tiled-project",
-    "property.type": "bool",
+    "property.type": "string",
     "recentFiles": [
         "wasteland.tsj",
         "arid-badlands.tmj",

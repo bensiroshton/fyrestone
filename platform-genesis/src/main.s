@@ -3,6 +3,7 @@
 #include "func.i"
 #include "data/arid_badlands.h"
 #include "data/borderlands-reduced.h"
+#include "data/map_common.h"
 #include "data/wasteland-tiles.h"
 #include "data/WillowBody_CYR.h"
 
@@ -17,16 +18,11 @@ VersionLabel:
 // Map
 
 
-Test:           .long   0xf0f0f0f0
-World:          .long   0   // address to tile map
-WorldLayer:     .long   VDP_PLANEB
+World:          .long   AridBadlandsGround   // address to tile map
 WorldTilePosX:  .word   0   // x tile position within tile map
 WorldTilePosY:  .word   0   // y tile position within tile map
-WorldTileMaxX:  .word   ARID_BADLANDS_PLANE_B_MAP_WIDTH - SCREEN_TILE_WIDTH
-WorldTileMaxY:  .word   ARID_BADLANDS_PLANE_B_MAP_HEIGHT - SCREEN_TILE_HEIGHT
 WorldPosX:      .long   0   // x pixel pos
 WorldPosY:      .long   0   // y pixel pos
-Test2:          .long   0xf1f1f1f1
 
 // Controller Status
 ControllerStateP1:  .long    0
@@ -49,7 +45,7 @@ func main
 
 LoadFont:
     move.l #WillowbodyCyrFont, %a0
-    move.w #0xb400, %d0         // vram offset to store tiles
+    move.w #FONT_VRAM, %d0         // vram offset to store tiles
     jsr VDPLoadTilePixelData
     rts
 
@@ -59,7 +55,7 @@ TestText:
     move.w #VDP_PLANEA, %d0
     move.w #0, %d1  // x
     move.w #0, %d2  // y
-    move.w #1, %d3  // palette
+    move.w #2, %d3  // palette
     jsr VDPDrawText
     
     rts
@@ -89,8 +85,6 @@ LoadOverlay:
     rts
 
 LoadWorldData:
-    move.l  #AridBadlandsPlaneB, (World)
-
     // load palette
     move.l #wasteland_tiles_palette, %a0
     move.w #0, %d0              // palette slot
@@ -105,53 +99,64 @@ LoadWorldData:
     rts
 
 ReadInput:
-    jsr InputReadP1             // d0 = 0000MXYZSACBRLDU
+    jsr InputReadP1
     move.l %d0, (ControllerStateP1)
     rts
 
 DrawWorld:
+    move.l (World), %a0
     move.l (ControllerStateP1), %d0 // d0 = 0000MXYZSACBRLDU
 
     // get world tile positions
-    move.w (WorldTilePosX), %d1 // x source -> VDPLoadTileIndexData
-    move.w (WorldTilePosY), %d2 // y source -> VDPLoadTileIndexData
+    move.w (WorldTilePosX), %d1     // x source -> VDPLoadTileIndexData
+    move.w (WorldTilePosY), %d2     // y source -> VDPLoadTileIndexData
  
     // move with joystick?
 .DrawWorld_BtnRight:
-    btst #IO_BTN_BIT_RIGHT, %d0 // check
-    bne.s .DrawWorld_BtnLeft    // skip?
-    cmp.w (WorldTileMaxX), %d1  // skip if we can't go any further
-    beq .DrawWorld_BtnLeft      // ..
+    btst #IO_BTN_BIT_RIGHT, %d0     // check
+    bne.s .DrawWorld_BtnLeft        // skip if button is not down
+    cmp.w MAP_OS_MAX_X(%a0), %d1    // skip if we can't go any further
+    beq .DrawWorld_BtnLeft          // ..
 
-    add.w #1, %d1               // tile x pos ++
+    add.w #1, %d1                   // tile x pos ++
 .DrawWorld_BtnLeft:
-    btst #IO_BTN_BIT_LEFT, %d0  // check
-    bne.s .DrawWorld_BtnUp      // skip?
-    cmpi #0, %d1                // skip if we can't go any further
-    beq .DrawWorld_BtnUp        // ..
+    btst #IO_BTN_BIT_LEFT, %d0      // check
+    bne.s .DrawWorld_BtnUp          // skip if button is not down
+    cmpi #0, %d1                    // skip if we can't go any further
+    beq .DrawWorld_BtnUp            // ..
 
-    sub.w #1, %d1               // tile x pos --
+    sub.w #1, %d1                   // tile x pos --
 .DrawWorld_BtnUp:
-    btst #IO_BTN_BIT_UP, %d0    // check
-    bne.s .DrawWorld_BtnDown    // skip?
-    cmpi #0, %d2                // skip if we can't go any further
-    beq .DrawWorld_BtnDown      // ..
+    btst #IO_BTN_BIT_UP, %d0        // check
+    bne.s .DrawWorld_BtnDown        // skip if button is not down
+    cmpi #0, %d2                    // skip if we can't go any further
+    beq .DrawWorld_BtnDown          // ..
 
-    sub.w #1, %d2               // action
+    sub.w #1, %d2                   // action
 .DrawWorld_BtnDown:
-    btst #IO_BTN_BIT_DOWN, %d0  // check
-    bne.s .DrawWorld_BtnFinish  // skip?
-    cmp.w (WorldTileMaxY), %d2  // skip if we can't go any further
-    beq .DrawWorld_BtnFinish      // ..
+    btst #IO_BTN_BIT_DOWN, %d0      // check
+    bne.s .DrawWorld_BtnFinish      // skip if button is not down
+    cmp.w MAP_OS_MAX_Y(%a0), %d2    // skip if we can't go any further
+    beq .DrawWorld_BtnFinish        // ..
 
-    add.w #1, %d2               // action
+    add.w #1, %d2                   // action
 .DrawWorld_BtnFinish:
     move.w %d1, (WorldTilePosX)
     move.w %d2, (WorldTilePosY)
 
+    // test scroll
+    // move.w #VDP_HSCROLL, %d0
+    // jsr VDPSetVRAMAddressCommand
+    //lsl.l #8, %d1 // upper word = h scroll plane A, lower word = plane B
+    //lsl.l #8, %d1
+    // move.l %d1, (VDP_DATA)
+    // -- set map source to 0,0
+    // move.w #0, %d1
+    // move.w #0, %d2
+
     // load index data
     move.l (World), %a0             // map index structure
-    move.l (WorldLayer), %d0        // vram destination
+    move.l MAP_OS_VRAM(%a0), %d0    // vram destination
                                     // x source, y source = d1, d2
     move.l #0, %d3                  // x dest
     move.l #0, %d4                  // y dest

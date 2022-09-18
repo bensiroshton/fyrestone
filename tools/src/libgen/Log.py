@@ -24,6 +24,14 @@ class Log(dict):
             self._log.write(msg)
             self._log.flush()
 
+    def error(self, msg):
+        self.print("ERROR: ")
+        self.println(msg)
+
+    def warn(self, msg):
+        self.print("WARNING: ")
+        self.println(msg)
+
     def file(self):
         return self._log
 

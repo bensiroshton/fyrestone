@@ -9,6 +9,7 @@
     .global VDPLoadTilePixelData
     .global VDPFillTileMap
     .global VDPDrawText
+    .global VDPSetVRAMAddressCommand
 
 //----------------------------------------------------------------------
 // Get a VDP command address with a given offset

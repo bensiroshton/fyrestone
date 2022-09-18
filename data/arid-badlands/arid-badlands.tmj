@@ -1800,7 +1800,7 @@
                 }],
          "height":160,
          "id":3,
-         "name":"Plane B",
+         "name":"ground",
          "opacity":0.7,
          "properties":[
                 {
@@ -1812,6 +1812,11 @@
                  "name":"paletteIndex",
                  "type":"int",
                  "value":0
+                }, 
+                {
+                 "name":"plane",
+                 "type":"string",
+                 "value":"b"
                 }],
          "startx":0,
          "starty":0,

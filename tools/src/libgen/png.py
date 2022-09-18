@@ -12,7 +12,7 @@ def to_asm(source, options):
 
 	ext = path.splitext(source)[1]
 	if ext != ".png":
-		log.println(f"ERROR: {source} is not a png. only png's are supported.")
+		log.error(f"{source} is not a png. only png's are supported.")
 		info["error"] = "Not a png."
 		info["skipped"] = True
 		return info
@@ -30,7 +30,7 @@ def to_asm(source, options):
 	info["outHeader"] = outHeaderFile
 
 	if not options["overwrite"] and path.exists(outFile):
-		log.println(f"skipping {outFile}, it already exists and ovewrite is set to False.")
+		log.warn(f"skipping {outFile}, it already exists and ovewrite is set to False.")
 		info["error"] = "Already exists and ovewrite is set to False."
 		info["skipped"] = True
 		return info
@@ -43,7 +43,7 @@ def to_asm(source, options):
 	h = image[1]
 	pngInfo = image[3]
 	if not "palette" in pngInfo:
-		log.println("ERROR: Image does not contain an indexed palette.")
+		log.error("Image does not contain an indexed palette.")
 		info["error"] = "Image does not contain an indexed palette."
 		info["skipped"] = True
 		return info
@@ -55,13 +55,13 @@ def to_asm(source, options):
 	log.println(f"palette length: {palLen}")
 
 	if palLen == 0 or palLen > 16:
-		log.println("ERROR: Input palette size must be between 1 and 16.")
+		log.error("Input palette size must be between 1 and 16.")
 		info["error"] = "Input palette size must be between 1 and 16."
 		info["skipped"] = True
 		return info
 
 	if w % 8.0 > 0 or h % 8.0 > 0:
-		log.println("ERROR: Image dimensions must be a multiple of 8.")
+		log.error("Image dimensions must be a multiple of 8.")
 		info["error"] = "Image dimensions must be a multiple of 8."
 		info["skipped"] = True
 		return info

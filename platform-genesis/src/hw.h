@@ -36,6 +36,7 @@
 #define VDP_PLANEB          0xe000      // Plane B Table address
 #define VDP_SPRITES         0xf000      // Sprites Table address
 #define VDP_WINDOW          0xd000      // Window Table address
+#define VDP_HSCROLL         0xf400
 
 // VDP Memory
 #define VDP_VRAM_ADDR_CMD   0x40000000 // Video RAM Address

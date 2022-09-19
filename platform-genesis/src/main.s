@@ -18,11 +18,13 @@ VersionLabel:
 // Map
 
 
-World:          .long   AridBadlandsGround   // address to tile map
-WorldTilePosX:  .word   0   // x tile position within tile map
-WorldTilePosY:  .word   0   // y tile position within tile map
-WorldPosX:      .long   0   // x pixel pos
-WorldPosY:      .long   0   // y pixel pos
+World:              .long   AridBadlandsGround   // address to tile map
+WorldTilePosX:      .word   0   // x tile position within tile map
+WorldTilePosY:      .word   0   // y tile position within tile map
+WorldLastTilePosX:  .word   0   // last x tile position within tile map
+WorldLastTilePosY:  .word   0   // last y tile position within tile map
+WorldPosX:          .long   0   // x pixel pos
+WorldPosY:          .long   0   // y pixel pos
 
 // Controller Status
 ControllerStateP1:  .long    0
@@ -110,37 +112,46 @@ DrawWorld:
     // get world tile positions
     move.w (WorldTilePosX), %d1     // x source -> VDPLoadTileIndexData
     move.w (WorldTilePosY), %d2     // y source -> VDPLoadTileIndexData
- 
+    move.w %d1, (WorldLastTilePosX) // store our tile pos before we might move it
+    move.w %d2, (WorldLastTilePosY) // ..
+
     // move with joystick?
 .DrawWorld_BtnRight:
     btst #IO_BTN_BIT_RIGHT, %d0     // check
     bne.s .DrawWorld_BtnLeft        // skip if button is not down
-    cmp.w MAP_OS_MAX_X(%a0), %d1    // skip if we can't go any further
-    beq .DrawWorld_BtnLeft          // ..
-
     add.w #1, %d1                   // tile x pos ++
 .DrawWorld_BtnLeft:
     btst #IO_BTN_BIT_LEFT, %d0      // check
     bne.s .DrawWorld_BtnUp          // skip if button is not down
-    cmpi #0, %d1                    // skip if we can't go any further
-    beq .DrawWorld_BtnUp            // ..
-
     sub.w #1, %d1                   // tile x pos --
 .DrawWorld_BtnUp:
     btst #IO_BTN_BIT_UP, %d0        // check
     bne.s .DrawWorld_BtnDown        // skip if button is not down
-    cmpi #0, %d2                    // skip if we can't go any further
-    beq .DrawWorld_BtnDown          // ..
-
     sub.w #1, %d2                   // action
 .DrawWorld_BtnDown:
     btst #IO_BTN_BIT_DOWN, %d0      // check
     bne.s .DrawWorld_BtnFinish      // skip if button is not down
-    cmp.w MAP_OS_MAX_Y(%a0), %d2    // skip if we can't go any further
-    beq .DrawWorld_BtnFinish        // ..
-
     add.w #1, %d2                   // action
 .DrawWorld_BtnFinish:
+
+    // check and fix our tile bounds if needed
+.DrawWorld_CheckTileXLow:
+    cmpi #0, %d1
+    bge .DrawWorld_CheckTileXHigh
+    mov.w #0, %d1
+.DrawWorld_CheckTileXHigh:
+    cmp.w MAP_OS_MAX_X(%a0), %d1
+    ble .DrawWorld_CheckTileYLow
+    mov.w MAP_OS_MAX_X(%a0), %d1
+.DrawWorld_CheckTileYLow:
+    cmpi #0, %d2
+    bge .DrawWorld_CheckTileYHigh
+    mov.w #0, %d2
+.DrawWorld_CheckTileYHigh:
+    cmp.w MAP_OS_MAX_Y(%a0), %d2
+    ble .DrawWorld_StoreTilePos
+    move.w MAP_OS_MAX_Y(%a0), %d2
+.DrawWorld_StoreTilePos:
     move.w %d1, (WorldTilePosX)
     move.w %d2, (WorldTilePosY)
 
@@ -155,7 +166,7 @@ DrawWorld:
     // move.w #0, %d2
 
     // load index data
-    move.l (World), %a0             // map index structure
+    //move.l (World), %a0           // map index structure
     move.l MAP_OS_VRAM(%a0), %d0    // vram destination
                                     // x source, y source = d1, d2
     move.l #0, %d3                  // x dest

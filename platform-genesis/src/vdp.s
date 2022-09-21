@@ -190,7 +190,7 @@ VDPFillTileMap:
     add.w #1, %d1               // increment tile id
     dbf %d5, .VDPSetTileMapFillBlockLinear_LoopWidth
 
-    add.l #MAP_WIDTH_BYTES, %d0 // go to next destination row
+    add.l #VDP_MAP_WIDTH_BYTES, %d0 // go to next destination row
     dbf %d3, .VDPSetTileMapFillBlockLinear_LoopHeight
 
     movm.l (%sp)+, %d5-%d6      // restore registers
@@ -218,7 +218,7 @@ VDPLoadTileIndexData:
     // set %d0 to initial vram position
     add.w %d3, %d0                  // add x offset to vram dest
     add.w %d3, %d0                  // repeat (2 bytes)
-    mulu.w #MAP_WIDTH_BYTES, %d4    // update y dest offset with map width
+    mulu.w #VDP_MAP_WIDTH_BYTES, %d4    // update y dest offset with map width
     add.w %d4, %d0                  // add y offset to vram dest
                                     // d3 and d4 are now free to use
     // d0 = vram offset
@@ -258,7 +258,7 @@ VDPLoadTileIndexData:
     sub.l %d5, %a0                  // repeat (2 bytes)
 
     // update %d0 to our new VRAM destination
-    add.w #MAP_WIDTH_BYTES, %d0     // add row stride (vram)
+    add.w #VDP_MAP_WIDTH_BYTES, %d0     // add row stride (vram)
 
     dbf %d6, .VDPLoadTileIndexData_YLoop
     rts
@@ -274,7 +274,7 @@ VDPLoadTileIndexData:
 //----------------------------------------------------------------------
 VDPDrawText:
     // set vram offset where we are going to draw our text
-    mulu.w #MAP_WIDTH_BYTES, %d2 // y offset = y * map width
+    mulu.w #VDP_MAP_WIDTH_BYTES, %d2 // y offset = y * map width
     mulu.w #2, %d1          // x offset = x * 2 bytes
     add.w %d2, %d1          // d1 = x offset + y offset
     add.w %d1, %d0          // d0 (plane offset) += xy offsets

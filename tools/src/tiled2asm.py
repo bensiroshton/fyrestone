@@ -194,26 +194,32 @@ def process_source(sourceFile, options):
 			vram = layer["vram"]
 			defLabel = f"{baseLabel.upper()}_{layerName.upper()}"
 			fo.write(f"// Layer: {layerName}\n\n")
-			fo.write(f"#define {defLabel}_MAP_WIDTH  {mapWidth}\n")
-			fo.write(f"#define {defLabel}_MAP_HEIGHT {mapHeight}\n")
-			fo.write(f"#define {defLabel}_TILE_COUNT {tileCount}\n")
-			fo.write(f"#define {defLabel}_SIZE       {outTileSize}\n")
-			fo.write(f"#define {defLabel}_MAX_TILE_X {defLabel}_MAP_WIDTH - SCREEN_TILE_WIDTH\n")
-			fo.write(f"#define {defLabel}_MAX_TILE_Y {defLabel}_MAP_HEIGHT - SCREEN_TILE_HEIGHT\n")
-			fo.write(f"#define {defLabel}_VRAM       {vram}\n")
+			fo.write(f"#define {defLabel}_MAP_WIDTH         {mapWidth}\n")
+			fo.write(f"#define {defLabel}_MAP_HEIGHT        {mapHeight}\n")
+			fo.write(f"#define {defLabel}_MAP_PIXEL_WIDTH   {mapWidth * 8}\n")
+			fo.write(f"#define {defLabel}_MAP_PIXEL_HEIGHT  {mapHeight * 8}\n")
+			fo.write(f"#define {defLabel}_TILE_COUNT        {tileCount}\n")
+			fo.write(f"#define {defLabel}_SIZE              {outTileSize}\n")
+			fo.write(f"#define {defLabel}_MAX_TILE_X        {defLabel}_MAP_WIDTH - SCREEN_TILE_WIDTH\n")
+			fo.write(f"#define {defLabel}_MAX_TILE_Y        {defLabel}_MAP_HEIGHT - SCREEN_TILE_HEIGHT\n")
+			fo.write(f"#define {defLabel}_VRAM              {vram}\n")
+			fo.write(f"#define {defLabel}_MAX_PIXEL_X       {defLabel}_MAP_PIXEL_WIDTH - SCREEN_WIDTH\n")
+			fo.write(f"#define {defLabel}_MAX_PIXEL_Y       {defLabel}_MAP_PIXEL_HEIGHT - SCREEN_HEIGHT\n")
 			fo.write("\n")
 
 	with open(outCommonHeaderFile, "w") as fo:
 		# file header
 		fo.write("// tiled2asm commons\n\n")
 		fo.write("// Assembly Offsets\n")
-		fo.write("#define MAP_OS            0\n")
-		fo.write("#define MAP_OS_DATA_ADD   0\n")
-		fo.write("#define MAP_OS_WIDTH      4\n")
-		fo.write("#define MAP_OS_HEIGHT     6\n")
-		fo.write("#define MAP_OS_MAX_X      8\n")
-		fo.write("#define MAP_OS_MAX_Y      10\n")
-		fo.write("#define MAP_OS_VRAM       12\n")
+		fo.write("#define MAP_OS                 0\n")
+		fo.write("#define MAP_OS_DATA_ADD        0\n")
+		fo.write("#define MAP_OS_WIDTH           4\n")
+		fo.write("#define MAP_OS_HEIGHT          6\n")
+		fo.write("#define MAP_OS_MAX_TILE_X      8\n")
+		fo.write("#define MAP_OS_MAX_TILE_Y     10\n")
+		fo.write("#define MAP_OS_VRAM           12\n")
+		fo.write("#define MAP_OS_MAX_PIXEL_X    16\n")
+		fo.write("#define MAP_OS_MAX_PIXEL_Y    18\n")
 		fo.write("\n")
 
 	# write source file
@@ -240,6 +246,8 @@ def process_source(sourceFile, options):
 			fo.write(f"    .global {label}MaxTileX\n")
 			fo.write(f"    .global {label}MaxTileY\n")
 			fo.write(f"    .global {label}VRam\n")
+			fo.write(f"    .global {label}MaxPixelX\n")
+			fo.write(f"    .global {label}MaxPixelY\n")
 
 		fo.write("\n")
 
@@ -253,12 +261,14 @@ def process_source(sourceFile, options):
 
 			fo.write(f"// map struct\n")
 			fo.write(f"{label}:\n")
-			fo.write(f"{label}Data:     dc.l    {dataLabel}\n")
-			fo.write(f"{label}Width:    dc.w    {defLabel}_MAP_WIDTH\n")
-			fo.write(f"{label}Height:   dc.w    {defLabel}_MAP_HEIGHT\n")
-			fo.write(f"{label}MaxTileX: dc.w    {defLabel}_MAX_TILE_X\n")
-			fo.write(f"{label}MaxTileY: dc.w    {defLabel}_MAX_TILE_Y\n")
-			fo.write(f"{label}VRam:     dc.l    {defLabel}_VRAM\n")
+			fo.write(f"{label}Data:         dc.l    {dataLabel}\n")
+			fo.write(f"{label}Width:        dc.w    {defLabel}_MAP_WIDTH\n")
+			fo.write(f"{label}Height:       dc.w    {defLabel}_MAP_HEIGHT\n")
+			fo.write(f"{label}MaxTileX:     dc.w    {defLabel}_MAX_TILE_X\n")
+			fo.write(f"{label}MaxTileY:     dc.w    {defLabel}_MAX_TILE_Y\n")
+			fo.write(f"{label}VRam:         dc.l    {defLabel}_VRAM\n")
+			fo.write(f"{label}MaxPixelX:    dc.w    {defLabel}_MAX_PIXEL_X\n")
+			fo.write(f"{label}MaxPixelY:    dc.w    {defLabel}_MAX_PIXEL_Y\n")
 			fo.write("\n")
 
 		# tile data

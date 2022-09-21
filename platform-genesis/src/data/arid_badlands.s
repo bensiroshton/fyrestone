@@ -12,15 +12,19 @@
     .global AridBadlandsGroundMaxTileX
     .global AridBadlandsGroundMaxTileY
     .global AridBadlandsGroundVRam
+    .global AridBadlandsGroundMaxPixelX
+    .global AridBadlandsGroundMaxPixelY
 
 // map struct
 AridBadlandsGround:
-AridBadlandsGroundData:     dc.l    arid_badlands_ground_data
-AridBadlandsGroundWidth:    dc.w    ARID_BADLANDS_GROUND_MAP_WIDTH
-AridBadlandsGroundHeight:   dc.w    ARID_BADLANDS_GROUND_MAP_HEIGHT
-AridBadlandsGroundMaxTileX: dc.w    ARID_BADLANDS_GROUND_MAX_TILE_X
-AridBadlandsGroundMaxTileY: dc.w    ARID_BADLANDS_GROUND_MAX_TILE_Y
-AridBadlandsGroundVRam:     dc.l    ARID_BADLANDS_GROUND_VRAM
+AridBadlandsGroundData:         dc.l    arid_badlands_ground_data
+AridBadlandsGroundWidth:        dc.w    ARID_BADLANDS_GROUND_MAP_WIDTH
+AridBadlandsGroundHeight:       dc.w    ARID_BADLANDS_GROUND_MAP_HEIGHT
+AridBadlandsGroundMaxTileX:     dc.w    ARID_BADLANDS_GROUND_MAX_TILE_X
+AridBadlandsGroundMaxTileY:     dc.w    ARID_BADLANDS_GROUND_MAX_TILE_Y
+AridBadlandsGroundVRam:         dc.l    ARID_BADLANDS_GROUND_VRAM
+AridBadlandsGroundMaxPixelX:    dc.w    ARID_BADLANDS_GROUND_MAX_PIXEL_X
+AridBadlandsGroundMaxPixelY:    dc.w    ARID_BADLANDS_GROUND_MAX_PIXEL_Y
 
 // map data (indexed tiles)
 arid_badlands_ground_data:

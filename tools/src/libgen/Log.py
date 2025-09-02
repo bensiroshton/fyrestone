@@ -12,8 +12,8 @@ class Log(dict):
         else:
             self._log = None
 
-    def println(self, msg):
-        if len(msg) > 0: self.print(msg)
+    def println(self, msg = None):
+        if msg is not None and len(msg) > 0: self.print(msg)
         self.print("\n")
 
     def print(self, msg):

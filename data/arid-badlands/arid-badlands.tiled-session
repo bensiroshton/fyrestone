@@ -31,11 +31,11 @@
             }
         },
         "arid-badlands.tmj": {
-            "scale": 1.5,
+            "scale": 0.5,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 420,
-                "y": 484.6666666666667
+                "x": 377,
+                "y": 687
             }
         },
         "arid-badlands.tmx": {

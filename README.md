@@ -27,6 +27,8 @@ This is an unofficial, fan-based project and has no affiliation with Gearbox Sof
 
 ## Development Tools
 
-- [SGDK](https://github.com/Stephane-D/SGDK)  
-- [Pro Motion NG](https://www.cosmigo.com/)  
-- [Tiled](https://www.mapeditor.org/)  
+- [SGDK](https://github.com/Stephane-D/SGDK)
+- [Pro Motion NG](https://www.cosmigo.com/)
+- [Tiled](https://www.mapeditor.org/)
+- [Exodus](https://www.exodusemulator.com/)
+- [VS Code](https://code.visualstudio.com/)
